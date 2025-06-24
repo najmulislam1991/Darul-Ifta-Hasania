@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="bn" class="">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>দারুল ইফতা হাসানিয়া</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: SolaimanLipi -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Placeholder Comments -->
+    <!-- Chosen Palette: Serene Islamic Green -->
+    <!-- Application Structure Plan: A single-page application (SPA) model using JavaScript to show/hide content sections (<section>) for a seamless, app-like user experience without page reloads. A fixed header contains global controls (menu, theme, language), and a slide-in drawer provides primary navigation. Content is organized into logical sections corresponding to menu items. Modals are used for detailed views like "Read More". This structure was chosen for its modern feel, speed, and user-friendly flow, perfectly suiting a content-rich site. -->
+    <!-- Visualization & Content Choices: 
+        - Prayer Times: Goal: Inform. Method: Styled HTML table. Justification: Clear, scannable data.
+        - Daily Verses: Goal: Inspire. Method: JS-rotated text in styled cards. Justification: Prominent spiritual content.
+        - Masayel List: Goal: Organize/Inform. Method: Grid of summary cards with a "Read More" modal. Justification: Allows easy scanning and deep dives without clutter.
+        - Contact Info: Goal: Inform. Method: List with icons and clickable links. Justification: Standard, actionable format.
+        - Form: Goal: User Input. Method: Standard HTML form. Justification: Universal pattern for data collection.
+        All interactions are handled with vanilla JavaScript to keep the application lightweight and self-contained.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        /* Main Font Setup */
+        body {
+            font-family: 'Hind Siliguri', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Arabic Font for specific elements */
+        .font-arabic {
+            font-family: 'Times New Roman', Times, serif;
+        }
+        
+        /* Theme Colors using CSS Variables */
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-accent: #eef2f4;
+            --text-primary: #212529;
+            --text-secondary: #495057;
+            --border-color: #dee2e6;
+            --accent-color: #00897B; /* A pleasant teal color */
+            --accent-color-hover: #00695C;
+        }
+
+        html.dark {
+            --bg-primary: #121212;
+            --bg-secondary: #1e1e1e;
+            --bg-accent: #2c2c2c;
+            --text-primary: #e0e0e0;
+            --text-secondary: #b0b0b0;
+            --border-color: #3e3e3e;
+            --accent-color: #4DB6AC;
+            --accent-color-hover: #26A69A;
+        }
+
+        /* Applying theme colors */
+        body {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .themed-bg-primary { background-color: var(--bg-primary); }
+        .themed-bg-secondary { background-color: var(--bg-secondary); }
+        .themed-bg-accent { background-color: var(--bg-accent); }
+        .themed-text-primary { color: var(--text-primary); }
+        .themed-text-secondary { color: var(--text-secondary); }
+        .themed-border { border-color: var(--border-color); }
+        .themed-accent { background-color: var(--accent-color); }
+        .themed-accent-text { color: var(--accent-color); }
+        .themed-accent-hover:hover { background-color: var(--accent-color-hover); }
+
+        /* Drawer Styles */
+        #drawer {
+            transition: transform 0.3s ease-in-out;
+            transform: translateX(-100%);
+        }
+        #drawer.open {
+            transform: translateX(0);
+        }
+        
+        /* Marquee / Scrolling Text */
+        @keyframes marquee {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        .marquee-text {
+            animation: marquee 20s linear infinite;
+        }
+
+        /* Active Nav Link Style */
+        .nav-link.active {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        /* Page transition */
+        .page {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Modal Styles */
+        .modal {
+            transition: opacity 0.3s ease;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-color);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-color-hover);
+        }
+    </style>
+</head>
+<body class="overflow-x-hidden">
+
+    <!-- Drawer (Sidebar) -->
+    <aside id="drawer" class="fixed top-0 left-0 z-50 w-72 h-full themed-bg-primary shadow-lg">
+        <div class="p-4">
+            <h2 class="text-2xl font-bold themed-accent-text">দারুল ইফতা</h2>
+            <p class="text-sm themed-text-secondary">হাসানিয়া, নড়াইল</p>
+        </div>
+        <nav id="nav-menu" class="flex flex-col p-2 space-y-2">
+            <a href="#home" class="nav-link text-lg font-semibold px-4 py-2 rounded-md transition-all duration-200">হোম</a>
+            <div id="masayel-menu-container">
+                <a href="#masayel" class="nav-link text-lg font-semibold px-4 py-2 rounded-md transition-all duration-200 flex justify-between items-center">
+                    <span>মাসায়েল</span>
+                    <i class="fas fa-chevron-down text-sm transition-transform"></i>
+                </a>
+                <div id="masayel-submenu" class="pl-4 pt-2 hidden space-y-1">
+                    <a href="#masayel" data-category="ত্বহারাত" class="nav-link block px-4 py-1.5 rounded-md text-base themed-text-secondary hover:bg-gray-200 dark:hover:bg-gray-700">ত্বহারাত</a>
+                    <a href="#masayel" data-category="সালাত" class="nav-link block px-4 py-1.5 rounded-md text-base themed-text-secondary hover:bg-gray-200 dark:hover:bg-gray-700">সালাত</a>
+                    <a href="#masayel" data-category="রোজা" class="nav-link block px-4 py-1.5 rounded-md text-base themed-text-secondary hover:bg-gray-200 dark:hover:bg-gray-700">রোজা</a>
+                    <a href="#masayel" data-category="যাকাত" class="nav-link block px-4 py-1.5 rounded-md text-base themed-text-secondary hover:bg-gray-200 dark:hover:bg-gray-700">যাকাত</a>
+                    <a href="#masayel" data-category="হজ্ব" class="nav-link block px-4 py-1.5 rounded-md text-base themed-text-secondary hover:bg-gray-200 dark:hover:bg-gray-700">হজ্ব</a>
+                    <a href="#masayel" data-category="মুআমালাত" class="nav-link block px-4 py-1.5 rounded-md text-base themed-text-secondary hover:bg-gray-200 dark:hover:bg-gray-700">মুআমালাত</a>
+                    <a href="#masayel" data-category="বিবাহ" class="nav-link block px-4 py-1.5 rounded-md text-base themed-text-secondary hover:bg-gray-200 dark:hover:bg-gray-700">বিবাহ ও তালাক</a>
+                    <a href="#masayel" data-category="জায়েজ-নাজায়েজ" class="nav-link block px-4 py-1.5 rounded-md text-base themed-text-secondary hover:bg-gray-200 dark:hover:bg-gray-700">জায়েজ-নাজায়েজ</a>
+                </div>
+            </div>
+            <a href="#ask" class="nav-link text-lg font-semibold px-4 py-2 rounded-md transition-all duration-200">প্রশ্ন করুন</a>
+            <a href="#about" class="nav-link text-lg font-semibold px-4 py-2 rounded-md transition-all duration-200">আমাদের সম্পর্কে</a>
+            <a href="#contact" class="nav-link text-lg font-semibold px-4 py-2 rounded-md transition-all duration-200">যোগাযোগ</a>
+        </nav>
+    </aside>
+
+    <!-- Overlay for Drawer -->
+    <div id="drawer-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
+
+    <!-- Main Content -->
+    <div id="main-content" class="min-h-screen transition-transform duration-300">
+        <!-- Header -->
+        <header class="sticky top-0 z-30 flex items-center justify-between p-3 themed-bg-primary shadow-md">
+            <button id="menu-button" class="p-2 rounded-full hover:themed-bg-accent focus:outline-none">
+                <i class="fas fa-bars text-xl themed-text-primary"></i>
+            </button>
+            <h1 class="text-xl font-bold themed-accent-text">দারুল ইফতা হাসানিয়া</h1>
+            <div class="flex items-center space-x-2">
+                 <div class="relative">
+                    <button id="lang-button" class="p-2 rounded-full hover:themed-bg-accent">
+                        <i class="fas fa-language text-xl themed-text-primary"></i>
+                    </button>
+                    <div id="lang-menu" class="absolute right-0 mt-2 w-28 themed-bg-primary rounded-md shadow-lg hidden">
+                        <a href="#" class="block px-4 py-2 text-sm themed-text-primary hover:themed-bg-accent">বাংলা</a>
+                        <a href="#" class="block px-4 py-2 text-sm themed-text-primary hover:themed-bg-accent">English</a>
+                        <a href="#" class="block px-4 py-2 text-sm themed-text-primary hover:themed-bg-accent">اردو</a>
+                    </div>
+                </div>
+                <button id="dark-mode-toggle" class="p-2 rounded-full hover:themed-bg-accent">
+                    <i class="fas fa-moon text-xl themed-text-primary"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Scrolling Marquee -->
+        <div class="themed-accent text-white py-2 overflow-hidden whitespace-nowrap">
+            <p class="marquee-text text-center font-semibold">★ জরুরী মাসয়ালা জানার জন্য এখনই আপনার প্রশ্ন করুন ★</p>
+        </div>
+
+        <main class="p-4 md:p-6">
+            <!-- Home Page -->
+            <section id="home" class="page">
+                <!-- Image Slider -->
+                <div id="image-slider" class="relative w-full h-48 md:h-64 lg:h-80 rounded-2xl overflow-hidden shadow-lg mb-6">
+                    <!-- Images will be injected by JS -->
+                </div>
+                
+                <!-- Welcome Message -->
+                <div class="themed-bg-primary p-6 rounded-2xl shadow-md mb-6 text-center">
+                    <h2 id="welcome-title" class="text-2xl md:text-3xl font-bold themed-accent-text mb-2">আসসালামু আলাইকুম ওয়া রাহমাতুল্লাহ</h2>
+                    <p id="welcome-text" class="themed-text-secondary">হাসানিয়া দারুল ইফতার ওয়েবসাইটে আপনাকে স্বাগতম। এখানে আপনি কুরআন ও সুন্নাহর আলোকে আপনার প্রয়োজনীয় মাসায়েল জানতে পারবেন।</p>
+                </div>
+
+                <!-- Daily Verses -->
+                <div class="grid md:grid-cols-2 gap-6 mb-6">
+                    <div class="themed-bg-primary p-6 rounded-2xl shadow-md">
+                        <h3 class="text-xl font-bold mb-3 flex items-center themed-accent-text">
+                            <i class="fas fa-quran mr-2"></i> কুরআনের বাণী
+                        </h3>
+                        <p id="quran-verse" class="themed-text-secondary text-lg italic"></p>
+                    </div>
+                    <div class="themed-bg-primary p-6 rounded-2xl shadow-md">
+                        <h3 class="text-xl font-bold mb-3 flex items-center themed-accent-text">
+                            <i class="fas fa-book-open mr-2"></i> হাদিসের বাণী
+                        </h3>
+                        <p id="hadith-verse" class="themed-text-secondary text-lg italic"></p>
+                    </div>
+                </div>
+
+                <!-- Prayer Times -->
+                <div class="themed-bg-primary p-6 rounded-2xl shadow-md mb-6">
+                    <h3 class="text-2xl font-bold mb-4 text-center themed-accent-text">নামাজের সময়সূচী (খুলনা)</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-center">
+                            <thead class="themed-text-secondary border-b themed-border">
+                                <tr>
+                                    <th class="py-2">নামাজ</th>
+                                    <th class="py-2">সময়</th>
+                                </tr>
+                            </thead>
+                            <tbody id="prayer-times-body">
+                                <!-- Prayer times will be injected by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                     <div class="mt-4 text-center themed-text-secondary">
+                        <h4 class="font-bold">নিষিদ্ধ সময়:</h4>
+                        <p>সূর্যোদয়, দ্বিপ্রহর ও সূর্যাস্তের সময়।</p>
+                    </div>
+                </div>
+
+                <!-- Masayel Topics Section -->
+                <div class="themed-bg-primary p-6 rounded-2xl shadow-md">
+                    <h3 class="text-2xl font-bold mb-4 text-center themed-accent-text">জরুরী মাসায়েল</h3>
+                    <div id="home-masayel-categories" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                        <!-- Category boxes will be injected by JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Masayel Page -->
+            <section id="masayel" class="page hidden">
+                <h2 id="masayel-page-title" class="text-3xl font-bold themed-accent-text mb-6 text-center">মাসায়েল</h2>
+                <div id="masayel-content" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Masayel cards will be injected by JS -->
+                </div>
+            </section>
+
+            <!-- Ask a Question Page -->
+            <section id="ask" class="page hidden">
+                <div class="max-w-2xl mx-auto themed-bg-primary p-6 md:p-8 rounded-2xl shadow-md">
+                    <h2 class="text-3xl font-bold themed-accent-text mb-6 text-center">প্রশ্ন করুন</h2>
+                    <form id="question-form">
+                        <div class="mb-4">
+                            <label for="name" class="block themed-text-secondary font-semibold mb-2">নাম</label>
+                            <input type="text" id="name" name="name" class="w-full px-4 py-2 themed-bg-accent themed-text-primary border themed-border rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]">
+                        </div>
+                        <div class="mb-4">
+                            <label class="flex items-center">
+                                <input type="checkbox" id="anonymous" name="anonymous" class="h-4 w-4 rounded border-gray-300 text-[var(--accent-color)] focus:ring-[var(--accent-color)]">
+                                <span class="ml-2 themed-text-secondary">নাম প্রকাশে অনিচ্ছুক</span>
+                            </label>
+                        </div>
+                        <div class="mb-4">
+                            <label for="email" class="block themed-text-secondary font-semibold mb-2">ইমেইল অ্যাড্রেস</label>
+                            <input type="email" id="email" name="email" class="w-full px-4 py-2 themed-bg-accent themed-text-primary border themed-border rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]" required>
+                        </div>
+                        <div class="mb-4">
+                            <label for="phone" class="block themed-text-secondary font-semibold mb-2">ফোন নম্বর (ঐচ্ছিক)</label>
+                            <input type="tel" id="phone" name="phone" class="w-full px-4 py-2 themed-bg-accent themed-text-primary border themed-border rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]">
+                        </div>
+                         <div class="mb-4">
+                            <label for="subject" class="block themed-text-secondary font-semibold mb-2">প্রশ্নের বিষয়</label>
+                            <input type="text" id="subject" name="subject" class="w-full px-4 py-2 themed-bg-accent themed-text-primary border themed-border rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]" required>
+                        </div>
+                        <div class="mb-6">
+                            <label for="question" class="block themed-text-secondary font-semibold mb-2">প্রশ্নের বিস্তারিত</label>
+                            <textarea id="question" name="question" rows="6" class="w-full px-4 py-2 themed-bg-accent themed-text-primary border themed-border rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]" required></textarea>
+                        </div>
+                        <button type="submit" class="w-full text-white font-bold py-3 px-4 rounded-md themed-accent themed-accent-hover transition duration-300">জমা দিন</button>
+                    </form>
+                    <div id="form-success-message" class="hidden mt-4 p-4 text-center bg-green-100 text-green-800 rounded-md">
+                        আপনার প্রশ্ন সফলভাবে জমা দেওয়া হয়েছে। আমরা শীঘ্রই আপনার সাথে যোগাযোগ করব।
+                    </div>
+                </div>
+            </section>
+
+            <!-- About Us Page -->
+            <section id="about" class="page hidden">
+                <div class="max-w-4xl mx-auto themed-bg-primary p-6 md:p-8 rounded-2xl shadow-md">
+                    <h2 class="text-3xl font-bold themed-accent-text mb-2 text-center">আমাদের সম্পর্কে</h2>
+                     <p class="text-center text-xl font-semibold themed-text-secondary mb-6">দারুল ইফতা হাসানিয়া</p>
+                    <div class="text-center mb-6">
+                        <i class="fas fa-mosque text-6xl themed-accent-text"></i>
+                    </div>
+                    <p class="themed-text-secondary text-lg leading-relaxed text-center">
+                        হাসানিয়া দারুল ইফতা একটি অলাভজনক ইসলামী গবেষণা কেন্দ্র। আমাদের লক্ষ্য হলো কুরআন ও সুন্নাহর আলোকে সঠিক ইসলামী জ্ঞান মানুষের কাছে পৌঁছে দেওয়া। আমরা দৈনন্দিন জীবনের বিভিন্ন বিষয়ে শরঈ সমাধান প্রদান করে থাকি। আমাদের অভিজ্ঞ মুফতিগণ সর্বদা আপনাদের প্রশ্নের উত্তর দেওয়ার জন্য প্রস্তুত।
+                    </p>
+                    <div class="mt-8 border-t themed-border pt-6 grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                        <div>
+                            <i class="fas fa-bullseye text-4xl themed-accent-text mb-2"></i>
+                            <h3 class="text-xl font-bold">আমাদের লক্ষ্য</h3>
+                            <p class="themed-text-secondary">সঠিক দ্বীনি জ্ঞান প্রচার করা।</p>
+                        </div>
+                         <div>
+                            <i class="fas fa-book-reader text-4xl themed-accent-text mb-2"></i>
+                            <h3 class="text-xl font-bold">আমাদের সেবা</h3>
+                            <p class="themed-text-secondary">জরুরী মাসায়েল এবং ফতোয়া প্রদান।</p>
+                        </div>
+                         <div>
+                            <i class="fas fa-users text-4xl themed-accent-text mb-2"></i>
+                            <h3 class="text-xl font-bold">আমাদের টিম</h3>
+                            <p class="themed-text-secondary">একদল বিজ্ঞ ও অভিজ্ঞ আলেম।</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Contact Page -->
+            <section id="contact" class="page hidden">
+                 <div class="max-w-2xl mx-auto themed-bg-primary p-6 md:p-8 rounded-2xl shadow-md">
+                    <h2 class="text-3xl font-bold themed-accent-text mb-6 text-center">যোগাযোগ</h2>
+                    <ul class="space-y-4 text-lg">
+                        <li class="flex items-start">
+                           <i class="fas fa-map-marker-alt themed-accent-text mt-1 mr-4"></i>
+                           <span class="themed-text-secondary">হাসানিয়া দারুল ইফতা, রঘুনাথপুর, শিঙ্গাশোলপুর, কালিয়া, নড়াইল।</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-phone-alt themed-accent-text mr-4"></i>
+                            <a href="tel:01895286282" class="themed-text-secondary hover:themed-accent-text">০১৮৯৫২৮৬২৮২</a>
+                        </li>
+                        <li class="flex items-center">
+                           <i class="fas fa-envelope themed-accent-text mr-4"></i>
+                            <a href="mailto:darulifta@hasania.com" class="themed-text-secondary hover:themed-accent-text">darulifta@hasania.com</a>
+                        </li>
+                    </ul>
+                 </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="themed-bg-primary mt-8 py-6 px-4 text-center border-t themed-border">
+            <p class="themed-text-secondary mb-4 font-semibold">পৃথিবীর যেকোন প্রান্ত থেকে আপনার জরুরী মাসয়ালা জানার জন্য এখনই যোগাযোগ করুন।</p>
+            <div class="flex justify-center space-x-6">
+                <a href="#" class="themed-text-secondary hover:themed-accent-text transition duration-300 text-2xl"><i class="fab fa-youtube"></i></a>
+                <a href="#" class="themed-text-secondary hover:themed-accent-text transition duration-300 text-2xl"><i class="fab fa-facebook"></i></a>
+                <a href="#" class="themed-text-secondary hover:themed-accent-text transition duration-300 text-2xl"><i class="fab fa-whatsapp"></i></a>
+            </div>
+             <p class="mt-4 text-sm themed-text-secondary">&copy; ২০২৩-২০২৪ দারুল ইফতা হাসানিয়া। সর্বস্বত্ব সংরক্ষিত।</p>
+        </footer>
+
+    </div>
+
+    <!-- Masayel Read More Modal -->
+    <div id="masayel-modal" class="modal fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 p-4 hidden opacity-0">
+        <div id="modal-content" class="themed-bg-primary rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 relative">
+            <button id="modal-close-button" class="absolute top-4 right-4 text-2xl themed-text-secondary hover:themed-text-primary">&times;</button>
+            <h2 id="modal-title" class="text-2xl md:text-3xl font-bold themed-accent-text mb-4"></h2>
+            <p id="modal-body" class="themed-text-secondary leading-relaxed whitespace-pre-wrap"></p>
+            <div class="mt-6 border-t themed-border pt-4 flex items-center justify-end space-x-3">
+                 <button id="bookmark-button" title="বুকমার্ক করুন" class="p-2 rounded-full hover:themed-bg-accent">
+                    <i class="far fa-bookmark text-xl themed-text-primary"></i>
+                </button>
+                <button id="copy-button" title="কপি করুন" class="p-2 rounded-full hover:themed-bg-accent">
+                    <i class="fas fa-copy text-xl themed-text-primary"></i>
+                </button>
+                <button id="share-button" title="শেয়ার করুন" class="p-2 rounded-full hover:themed-bg-accent">
+                    <i class="fas fa-share-alt text-xl themed-text-primary"></i>
+                </button>
+            </div>
+            <div id="copy-success-toast" class="hidden absolute bottom-4 left-1/2 -translate-x-1/2 bg-green-600 text-white px-4 py-2 rounded-md">কপি করা হয়েছে!</div>
+        </div>
+    </div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    // --- DATA ---
+    const imageSliderData = [
+        'https://placehold.co/800x400/00897B/FFFFFF?text=Darul+Ifta+Hasania',
+        'https://placehold.co/800x400/4DB6AC/FFFFFF?text=Islamic+Knowledge',
+        'https://placehold.co/800x400/004D40/FFFFFF?text=Quran+%26+Sunnah',
+    ];
+
+    const quranVerses = [
+        '"আর তোমরা নামাজ প্রতিষ্ঠা কর, যাকাত প্রদান কর এবং রুকুকারীদের সাথে রুকু কর।" (সূরা আল-বাকারা, আয়াত ৪৩)',
+        '"নিশ্চয়ই আল্লাহ্‌ ধৈর্যশীলদের সাথে আছেন।" (সূরা আল-বাকারা, আয়াত ১৫৩)',
+        '"এবং তোমার প্রতিপালকের অনুগ্রহের কথা প্রকাশ কর।" (সূরা আদ-দুহা, আয়াত ১১)',
+    ];
+
+    const hadithVerses = [
+        'রাসূলুল্লাহ (ﷺ) বলেছেন, "জ্ঞান অর্জন করা প্রত্যেক মুসলিমের উপর ফরজ।" (ইবনে মাজাহ)',
+        'রাসূলুল্লাহ (ﷺ) বলেছেন, "তোমাদের মধ্যে সর্বোত্তম সে-ই, যে নিজে কুরআন শেখে এবং অন্যকে শেখায়।" (বুখারী)',
+        'রাসূলুল্লাহ (ﷺ) বলেছেন, "পরিষ্কার-পরিচ্ছন্নতা ঈমানের অঙ্গ।" (মুসলিম)',
+    ];
+    
+    const prayerTimes = {
+        'ফজর': '৩:৪৫ AM',
+        'যোহর': '১২:০২ PM',
+        'আসর': '৪:৪০ PM',
+        'মাগরিব': '৬:৫২ PM',
+        'ইশা': '৮:১৫ PM',
+        'তাহাজ্জুদ': 'রাতের শেষ তৃতীয়াংশ'
+    };
+
+    const masayelData = [
+        { id: 1, category: 'ত্বহারাত', title: 'ওযুর ফরজ কয়টি?', summary: 'ওযুর ফরজ চারটি। যথা: (১) মুখমন্ডল ধোয়া...', content: 'ওযুর ফরজ চারটি। যথা: (১) মুখমন্ডল ধোয়া। (২) কনুইসহ উভয় হাত ধোয়া। (৩) মাথার এক-চতুর্থাংশ মাসেহ করা। (৪) টাখনুসহ উভয় পা ধোয়া।' },
+        { id: 2, category: 'ত্বহারাত', title: 'গোসলের ফরজ কয়টি?', summary: 'গোসলের ফরজ তিনটি। যথা: (১) ভালোভাবে কুলি করা...', content: 'গোসলের ফরজ তিনটি। যথা: (১) ভালোভাবে কুলি করা। (২) নাকে পানি দেওয়া। (৩) সর্ব শরীর ধোয়া।' },
+        { id: 3, category: 'সালাত', title: 'সালাতের আরকান ও আহকাম', summary: 'সালাতের ভেতরে ও বাইরে কিছু ফরজ কাজ আছে...', content: 'সালাতের বাইরে ৭টি এবং ভেতরে ৬টি ফরজ রয়েছে। এগুলোকে একত্রে সালাতের আরকান ও আহকাম বলা হয়। এর কোনো একটি ছুটে গেলে সালাত আদায় হয় না।' },
+        { id: 4, category: 'সালাত', title: 'বিতর নামাজ পড়ার নিয়ম', summary: 'বিতর নামাজ তিন রাকাত। এটি এশার নামাজের পর পড়তে হয়...', content: 'বিতর নামাজ তিন রাকাত। এটি এশার নামাজের পর পড়তে হয়। তৃতীয় রাকাতে সূরা ফাতিহার পর অন্য একটি সূরা পড়ে তাকবীরে তাহরীমা বলে দোয়ায়ে কুনুত পড়তে হয়।' },
+        { id: 5, category: 'রোজা', title: 'রোজা ভঙ্গের কারণসমূহ', summary: 'ইচ্ছাকৃতভাবে পানাহার করলে রোজা ভেঙ্গে যায়...', content: 'ইচ্ছাকৃতভাবে পানাহার করলে, স্ত্রী সহবাস করলে, এবং ইচ্ছাকৃতভাবে বমি করলে রোজা ভেঙ্গে যায়। তবে অনিচ্ছাকৃত বমি হলে রোজা ভাঙ্গে না।' },
+        { id: 6, category: 'যাকাত', title: 'যাকাতের নিসাব পরিমাণ', summary: 'সাড়ে সাত তোলা স্বর্ণ বা সাড়ে বায়ান্ন তোলা রৌপ্য...', content: 'সাড়ে সাত তোলা (৮৫ গ্রাম) স্বর্ণ বা সাড়ে বায়ান্ন তোলা (৫৯৫ গ্রাম) রৌপ্য বা তার সমমূল্যের সম্পদ এক বছর থাকলে তার উপর যাকাত ফরজ হয়। যাকাতের হার ২.৫%।' },
+        { id: 7, category: 'বিবাহ', title: 'বিবাহের শর্তাবলী', summary: 'বিবাহ শুদ্ধ হওয়ার জন্য কিছু শর্ত রয়েছে...', content: 'বিবাহ শুদ্ধ হওয়ার জন্য প্রধান শর্ত দুইটি: (১) ইজাব (প্রস্তাব) এবং (২) কবুল (গ্রহণ)। এটি দুইজন সাক্ষীর সামনে হতে হবে।' },
+    ];
+    
+    // --- DOM SELECTORS ---
+    const drawer = document.getElementById('drawer');
+    const menuButton = document.getElementById('menu-button');
+    const drawerOverlay = document.getElementById('drawer-overlay');
+    const darkModeToggle = document.getElementById('dark-mode-toggle');
+    const navLinks = document.querySelectorAll('.nav-link');
+    const pages = document.querySelectorAll('.page');
+    const masayelMenuContainer = document.getElementById('masayel-menu-container');
+    const masayelSubmenu = document.getElementById('masayel-submenu');
+
+    // --- STATE ---
+    let currentSlide = 0;
+    let isDrawerOpen = false;
+
+    // --- INITIALIZATION ---
+    function init() {
+        // Navigation
+        setupNavigation();
+        
+        // Features
+        setupDarkMode();
+        setupLanguageSwitcher();
+        setupMasayelMenu();
+
+        // Home Page Content
+        initSlider();
+        updateDailyContent();
+        renderPrayerTimes();
+        renderHomeCategories();
+
+        // Masayel Page
+        renderMasayel('all');
+        
+        // Ask Form
+        setupAskForm();
+        
+        // Modal
+        setupModal();
+    }
+
+    // --- NAVIGATION ---
+    function setupNavigation() {
+        menuButton.addEventListener('click', toggleDrawer);
+        drawerOverlay.addEventListener('click', toggleDrawer);
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                const targetId = e.currentTarget.getAttribute('href').substring(1);
+                
+                // Handle Masayel category clicks from drawer
+                const category = e.currentTarget.dataset.category;
+                if (category) {
+                    renderMasayel(category);
+                    document.getElementById('masayel-page-title').textContent = `মাসায়েল: ${category}`;
+                } else if (targetId === 'masayel') {
+                    renderMasayel('all');
+                    document.getElementById('masayel-page-title').textContent = 'সকল মাসায়েল';
+                }
+
+                showPage(targetId);
+                updateActiveLink(e.currentTarget);
+                if (isDrawerOpen) {
+                    toggleDrawer();
+                }
+            });
+        });
+        
+        // Initial page load
+        const initialHash = window.location.hash || '#home';
+        showPage(initialHash.substring(1));
+        updateActiveLink(document.querySelector(`.nav-link[href="${initialHash}"]`));
+    }
+
+    function showPage(pageId) {
+        pages.forEach(page => {
+            if (page.id === pageId) {
+                page.classList.remove('hidden');
+            } else {
+                page.classList.add('hidden');
+            }
+        });
+        window.scrollTo(0, 0);
+    }
+    
+    function updateActiveLink(activeLink) {
+        navLinks.forEach(link => link.classList.remove('active'));
+        if (activeLink) {
+            activeLink.classList.add('active');
+        }
+    }
+
+    function toggleDrawer() {
+        isDrawerOpen = !isDrawerOpen;
+        drawer.classList.toggle('open');
+        drawerOverlay.classList.toggle('hidden');
+    }
+    
+    function setupMasayelMenu() {
+        const masayelLink = masayelMenuContainer.querySelector('a');
+        masayelLink.addEventListener('click', (e) => {
+            if (e.target.closest('a').dataset.category) return; // if a submenu item is clicked, don't toggle
+            e.preventDefault();
+            masayelSubmenu.classList.toggle('hidden');
+            masayelLink.querySelector('i').classList.toggle('rotate-180');
+        });
+    }
+
+    // --- FEATURES ---
+    function setupDarkMode() {
+        const storedTheme = localStorage.getItem('theme');
+        if (storedTheme === 'dark' || (!storedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+            darkModeToggle.innerHTML = '<i class="fas fa-sun text-xl themed-text-primary"></i>';
+        }
+
+        darkModeToggle.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            if (document.documentElement.classList.contains('dark')) {
+                localStorage.setItem('theme', 'dark');
+                darkModeToggle.innerHTML = '<i class="fas fa-sun text-xl themed-text-primary"></i>';
+            } else {
+                localStorage.setItem('theme', 'light');
+                darkModeToggle.innerHTML = '<i class="fas fa-moon text-xl themed-text-primary"></i>';
+            }
+        });
+    }
+    
+    function setupLanguageSwitcher() {
+        const langButton = document.getElementById('lang-button');
+        const langMenu = document.getElementById('lang-menu');
+        langButton.addEventListener('click', () => {
+            langMenu.classList.toggle('hidden');
+        });
+        document.addEventListener('click', (e) => {
+            if (!langButton.contains(e.target) && !langMenu.contains(e.target)) {
+                langMenu.classList.add('hidden');
+            }
+        });
+    }
+
+    // --- HOME PAGE LOGIC ---
+    function initSlider() {
+        const sliderContainer = document.getElementById('image-slider');
+        imageSliderData.forEach((src, index) => {
+            const img = document.createElement('img');
+            img.src = src;
+            img.alt = `Slide ${index + 1}`;
+            img.className = `absolute w-full h-full object-cover transition-opacity duration-1000 ${index === 0 ? 'opacity-100' : 'opacity-0'}`;
+            sliderContainer.appendChild(img);
+        });
+
+        setInterval(() => {
+            const images = sliderContainer.getElementsByTagName('img');
+            images[currentSlide].classList.remove('opacity-100');
+            currentSlide = (currentSlide + 1) % images.length;
+            images[currentSlide].classList.add('opacity-100');
+        }, 5000);
+    }
+
+    function updateDailyContent() {
+        const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24));
+        document.getElementById('quran-verse').textContent = quranVerses[dayOfYear % quranVerses.length];
+        document.getElementById('hadith-verse').textContent = hadithVerses[dayOfYear % hadithVerses.length];
+    }
+    
+    function renderPrayerTimes() {
+        const tableBody = document.getElementById('prayer-times-body');
+        tableBody.innerHTML = '';
+        for (const [name, time] of Object.entries(prayerTimes)) {
+            const row = `
+                <tr class="border-b themed-border last:border-b-0">
+                    <td class="py-3 font-semibold">${name}</td>
+                    <td class="py-3">${time}</td>
+                </tr>
+            `;
+            tableBody.innerHTML += row;
+        }
+    }
+    
+    function renderHomeCategories() {
+        const container = document.getElementById('home-masayel-categories');
+        const categories = [...new Set(masayelData.map(m => m.category))];
+        container.innerHTML = '';
+        categories.forEach(cat => {
+            const catBox = document.createElement('a');
+            catBox.href = '#masayel';
+            catBox.className = 'nav-link themed-bg-accent p-4 rounded-xl text-center font-semibold themed-text-primary hover:themed-accent hover:text-white transition-all duration-300';
+            catBox.textContent = cat;
+            catBox.dataset.category = cat;
+            container.appendChild(catBox);
+        });
+        
+        // Re-add event listeners for these new links
+        container.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                const category = e.currentTarget.dataset.category;
+                renderMasayel(category);
+                document.getElementById('masayel-page-title').textContent = `মাসায়েল: ${category}`;
+                showPage('masayel');
+                updateActiveLink(document.querySelector('#masayel-menu-container a'));
+            });
+        });
+    }
+
+    // --- MASAYEL PAGE LOGIC ---
+    function renderMasayel(category) {
+        const contentDiv = document.getElementById('masayel-content');
+        contentDiv.innerHTML = '';
+        const filteredData = category === 'all' ? masayelData : masayelData.filter(m => m.category === category);
+
+        if (filteredData.length === 0) {
+            contentDiv.innerHTML = `<p class="themed-text-secondary col-span-full text-center">এই বিষয়ে কোনো মাসয়ালা পাওয়া যায়নি।</p>`;
+            return;
+        }
+
+        filteredData.forEach(masala => {
+            const card = `
+                <div class="themed-bg-primary p-6 rounded-2xl shadow-md flex flex-col">
+                    <h3 class="text-xl font-bold themed-accent-text mb-2">${masala.title}</h3>
+                    <p class="themed-text-secondary mb-4 flex-grow">${masala.summary}</p>
+                    <button data-id="${masala.id}" class="read-more-btn mt-auto self-start text-white font-semibold py-2 px-4 rounded-md themed-accent themed-accent-hover transition duration-300">
+                        আরো পড়ুন
+                    </button>
+                </div>
+            `;
+            contentDiv.innerHTML += card;
+        });
+    }
+    
+    // --- ASK FORM LOGIC ---
+    function setupAskForm() {
+        const form = document.getElementById('question-form');
+        const successMessage = document.getElementById('form-success-message');
+        
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            // In a real app, you would send this data to a server.
+            // For this demo, we'll just show a success message.
+            successMessage.classList.remove('hidden');
+            form.reset();
+            setTimeout(() => {
+                successMessage.classList.add('hidden');
+            }, 5000);
+        });
+    }
+    
+    // --- MODAL LOGIC ---
+    function setupModal() {
+        const modal = document.getElementById('masayel-modal');
+        const closeModalButton = document.getElementById('modal-close-button');
+        const copyButton = document.getElementById('copy-button');
+        const shareButton = document.getElementById('share-button');
+
+        document.getElementById('masayel-content').addEventListener('click', (e) => {
+            if (e.target.classList.contains('read-more-btn')) {
+                const masalaId = e.target.dataset.id;
+                const masala = masayelData.find(m => m.id == masalaId);
+                if (masala) {
+                    openModal(masala);
+                }
+            }
+        });
+
+        closeModalButton.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+    }
+    
+    function openModal(masala) {
+        const modal = document.getElementById('masayel-modal');
+        document.getElementById('modal-title').textContent = masala.title;
+        document.getElementById('modal-body').textContent = masala.content;
+        
+        // Setup buttons for this specific masala
+        const copyButton = document.getElementById('copy-button');
+        const shareButton = document.getElementById('share-button');
+        
+        copyButton.onclick = () => copyToClipboard(masala.content);
+        shareButton.onclick = () => shareMasala(masala.title, masala.content);
+        
+        modal.classList.remove('hidden');
+        setTimeout(() => modal.classList.remove('opacity-0'), 10);
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+        const modal = document.getElementById('masayel-modal');
+        modal.classList.add('opacity-0');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }, 300);
+    }
+    
+    // --- UTILITY FUNCTIONS ---
+    function copyToClipboard(text) {
+        const toast = document.getElementById('copy-success-toast');
+        try {
+            // A temporary textarea is created to hold the text, selected, and copied.
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = text;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempTextArea);
+
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 2000);
+
+        } catch (err) {
+            console.error('Failed to copy: ', err);
+            alert('কপি করতে সমস্যা হয়েছে।');
+        }
+    }
+
+    function shareMasala(title, text) {
+        if (navigator.share) {
+            navigator.share({
+                title: title,
+                text: text,
+                url: window.location.href,
+            }).catch(console.error);
+        } else {
+            alert('আপনার ব্রাউজার এই শেয়ার ফিচারটি সাপোর্ট করে না।');
+        }
+    }
+
+
+    // --- RUN APP ---
+    init();
+});
+</script>
+
+</body>
+</html>
