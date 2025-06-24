@@ -8,7 +8,7 @@
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Google Fonts: SolaimanLipi -->
+    <!-- Google Fonts: Hind Siliguri (replaces SolaimanLipi for better web rendering) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -20,11 +20,11 @@
     <!-- Chosen Palette: Serene Islamic Green -->
     <!-- Application Structure Plan: A single-page application (SPA) model using JavaScript to show/hide content sections (<section>) for a seamless, app-like user experience without page reloads. A fixed header contains global controls (menu, theme, language), and a slide-in drawer provides primary navigation. Content is organized into logical sections corresponding to menu items. Modals are used for detailed views like "Read More". This structure was chosen for its modern feel, speed, and user-friendly flow, perfectly suiting a content-rich site. -->
     <!-- Visualization & Content Choices: 
-        - Prayer Times: Goal: Inform. Method: Styled HTML table. Justification: Clear, scannable data.
+        - Prayer Times: Goal: Inform. Method: Styled HTML table populated via an external API (Al-Adhan). A dropdown allows users to select their city, triggering an API call to fetch location-specific times. Justification: Provides accurate, dynamic, and personalized information, significantly improving utility.
         - Daily Verses: Goal: Inspire. Method: JS-rotated text in styled cards. Justification: Prominent spiritual content.
         - Masayel List: Goal: Organize/Inform. Method: Grid of summary cards with a "Read More" modal. Justification: Allows easy scanning and deep dives without clutter.
         - Contact Info: Goal: Inform. Method: List with icons and clickable links. Justification: Standard, actionable format.
-        - Form: Goal: User Input. Method: Standard HTML form submitted via AJAX to a third-party service (Formspree) to avoid backend dependency. Justification: Universal pattern for data collection, made functional on a static site.
+        - Form: Goal: User Input. Method: Standard HTML form submitted via AJAX to a third-party service (Formspree). Justification: Universal pattern for data collection, made functional on a static site.
         All interactions are handled with vanilla JavaScript to keep the application lightweight and self-contained.
     -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
@@ -232,7 +232,13 @@
 
                 <!-- Prayer Times -->
                 <div class="themed-bg-primary p-6 rounded-2xl shadow-md mb-6">
-                    <h3 class="text-2xl font-bold mb-4 text-center themed-accent-text">নামাজের সময়সূচী (খুলনা)</h3>
+                    <div class="flex flex-col sm:flex-row justify-between items-center mb-4">
+                        <h3 class="text-2xl font-bold themed-accent-text mb-2 sm:mb-0">নামাজের সময়সূচী</h3>
+                        <div class="flex items-center">
+                            <label for="location-selector" class="mr-2 themed-text-secondary">শহর:</label>
+                            <select id="location-selector" class="themed-bg-accent themed-text-primary border themed-border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]"></select>
+                        </div>
+                    </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-center">
                             <thead class="themed-text-secondary border-b themed-border">
@@ -246,7 +252,7 @@
                             </tbody>
                         </table>
                     </div>
-                     <div class="mt-4 text-center themed-text-secondary">
+                     <div id="forbidden-times" class="mt-4 text-center themed-text-secondary">
                         <h4 class="font-bold">নিষিদ্ধ সময়:</h4>
                         <p>সূর্যোদয়, দ্বিপ্রহর ও সূর্যাস্তের সময়।</p>
                     </div>
@@ -421,14 +427,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'রাসূলুল্লাহ (ﷺ) বলেছেন, "পরিষ্কার-পরিচ্ছন্নতা ঈমানের অঙ্গ।" (মুসলিম)',
     ];
     
-    const prayerTimes = {
-        'ফজর': '৩:৪৫ AM',
-        'যোহর': '১২:০২ PM',
-        'আসর': '৪:৪০ PM',
-        'মাগরিব': '৬:৫২ PM',
-        'ইশা': '৮:১৫ PM',
-        'তাহাজ্জুদ': 'রাতের শেষ তৃতীয়াংশ'
-    };
+    const locations = ["Dhaka", "Chattogram", "Khulna", "Sylhet", "Rajshahi", "Barishal", "Rangpur", "Mymensingh"];
 
     const masayelData = [
         { id: 1, category: 'ত্বহারাত', title: 'ওযুর ফরজ কয়টি?', summary: 'ওযুর ফরজ চারটি। যথা: (১) মুখমন্ডল ধোয়া...', content: 'ওযুর ফরজ চারটি। যথা: (১) মুখমন্ডল ধোয়া। (২) কনুইসহ উভয় হাত ধোয়া। (৩) মাথার এক-চতুর্থাংশ মাসেহ করা। (৪) টাখনুসহ উভয় পা ধোয়া।' },
@@ -449,6 +448,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const pages = document.querySelectorAll('.page');
     const masayelMenuContainer = document.getElementById('masayel-menu-container');
     const masayelSubmenu = document.getElementById('masayel-submenu');
+    const locationSelector = document.getElementById('location-selector');
 
     // --- STATE ---
     let currentSlide = 0;
@@ -463,11 +463,11 @@ document.addEventListener('DOMContentLoaded', () => {
         setupDarkMode();
         setupLanguageSwitcher();
         setupMasayelMenu();
+        setupPrayerTimes();
 
         // Home Page Content
         initSlider();
         updateDailyContent();
-        renderPrayerTimes();
         renderHomeCategories();
 
         // Masayel Page
@@ -489,7 +489,6 @@ document.addEventListener('DOMContentLoaded', () => {
             link.addEventListener('click', (e) => {
                 const targetId = e.currentTarget.getAttribute('href').substring(1);
                 
-                // Handle Masayel category clicks from drawer
                 const category = e.currentTarget.dataset.category;
                 if (category) {
                     renderMasayel(category);
@@ -507,7 +506,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
         
-        // Initial page load
         const initialHash = window.location.hash || '#home';
         showPage(initialHash.substring(1));
         updateActiveLink(document.querySelector(`.nav-link[href="${initialHash}"]`));
@@ -515,10 +513,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showPage(pageId) {
         pages.forEach(page => {
-            if (page.id === pageId) {
+            page.style.display = page.id === pageId ? 'block' : 'none';
+            if(page.id === pageId) {
                 page.classList.remove('hidden');
             } else {
-                page.classList.add('hidden');
+                 page.classList.add('hidden');
             }
         });
         window.scrollTo(0, 0);
@@ -540,7 +539,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function setupMasayelMenu() {
         const masayelLink = masayelMenuContainer.querySelector('a');
         masayelLink.addEventListener('click', (e) => {
-            if (e.target.closest('a').dataset.category) return; // if a submenu item is clicked, don't toggle
+            if (e.target.closest('a').dataset.category) return;
             e.preventDefault();
             masayelSubmenu.classList.toggle('hidden');
             masayelLink.querySelector('i').classList.toggle('rotate-180');
@@ -580,6 +579,85 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- PRAYER TIMES LOGIC ---
+    function setupPrayerTimes() {
+        locations.forEach(city => {
+            const option = document.createElement('option');
+            option.value = city;
+            option.textContent = city;
+            if (city === "Khulna") {
+                option.selected = true;
+            }
+            locationSelector.appendChild(option);
+        });
+
+        locationSelector.addEventListener('change', (e) => {
+            fetchPrayerTimes(e.target.value);
+        });
+        
+        fetchPrayerTimes(locationSelector.value);
+    }
+
+    async function fetchPrayerTimes(city) {
+        const tableBody = document.getElementById('prayer-times-body');
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="2" class="py-10 text-center themed-text-secondary">
+                    <i class="fas fa-spinner fa-spin text-2xl"></i>
+                    <p class="mt-2">সময় লোড হচ্ছে...</p>
+                </td>
+            </tr>
+        `;
+
+        try {
+            const response = await fetch(`https://api.aladhan.com/v1/timingsByCity?country=BD&city=${city}`);
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const data = await response.json();
+            displayPrayerTimes(data.data.timings);
+        } catch (error) {
+            console.error('Failed to fetch prayer times:', error);
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="2" class="py-10 text-center text-red-500">
+                       নামাজের সময় আনতে ব্যর্থ। <br/> অনুগ্রহ করে আপনার ইন্টারনেট সংযোগ পরীক্ষা করুন।
+                    </td>
+                </tr>
+            `;
+        }
+    }
+
+    function displayPrayerTimes(times) {
+        const tableBody = document.getElementById('prayer-times-body');
+        tableBody.innerHTML = '';
+        
+        const prayerOrder = {
+            'ফজর': times.Fajr,
+            'যোহর': times.Dhuhr,
+            'আসর': times.Asr,
+            'মাগরিব': times.Maghrib,
+            'ইশা': times.Isha,
+            'তাহাজ্জুদ': 'রাতের শেষ তৃতীয়াংশ'
+        };
+
+        for (const [name, time] of Object.entries(prayerOrder)) {
+            const row = document.createElement('tr');
+            row.className = 'border-b themed-border last:border-b-0';
+            row.innerHTML = `
+                <td class="py-3 font-semibold">${name}</td>
+                <td class="py-3">${time}</td>
+            `;
+            tableBody.appendChild(row);
+        }
+
+        const forbiddenTimesDiv = document.getElementById('forbidden-times');
+        forbiddenTimesDiv.innerHTML = `
+            <h4 class="font-bold">নিষিদ্ধ সময়:</h4>
+            <p>সূর্যোদয় (${times.Sunrise}), দ্বিপ্রহর ও সূর্যাস্ত (${times.Sunset})</p>
+        `;
+    }
+
     // --- HOME PAGE LOGIC ---
     function initSlider() {
         const sliderContainer = document.getElementById('image-slider');
@@ -605,20 +683,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('hadith-verse').textContent = hadithVerses[dayOfYear % hadithVerses.length];
     }
     
-    function renderPrayerTimes() {
-        const tableBody = document.getElementById('prayer-times-body');
-        tableBody.innerHTML = '';
-        for (const [name, time] of Object.entries(prayerTimes)) {
-            const row = `
-                <tr class="border-b themed-border last:border-b-0">
-                    <td class="py-3 font-semibold">${name}</td>
-                    <td class="py-3">${time}</td>
-                </tr>
-            `;
-            tableBody.innerHTML += row;
-        }
-    }
-    
     function renderHomeCategories() {
         const container = document.getElementById('home-masayel-categories');
         const categories = [...new Set(masayelData.map(m => m.category))];
@@ -632,7 +696,6 @@ document.addEventListener('DOMContentLoaded', () => {
             container.appendChild(catBox);
         });
         
-        // Re-add event listeners for these new links
         container.querySelectorAll('.nav-link').forEach(link => {
             link.addEventListener('click', (e) => {
                 const category = e.currentTarget.dataset.category;
@@ -686,10 +749,7 @@ document.addEventListener('DOMContentLoaded', () => {
             submitButton.disabled = true;
 
             const formData = new FormData(form);
-
-            // গুরুত্বপূর্ণ: আপনার najmulislamn1990@gmail.com ইমেইলের জন্য Formspree.io থেকে একটি নতুন এন্ডপয়েন্ট তৈরি করুন।
-            // তারপর সেই নতুন ফর্মের ইউনিক URL টি এখানে পেস্ট করুন।
-            // আমি এখানে একটি নতুন ডেমো এন্ডপয়েন্ট (xqkrpjjq) ব্যবহার করেছি।
+            
             fetch('https://formspree.io/f/xqkrpjjq', { 
                 method: 'POST',
                 body: formData,
@@ -732,9 +792,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function setupModal() {
         const modal = document.getElementById('masayel-modal');
         const closeModalButton = document.getElementById('modal-close-button');
-        const copyButton = document.getElementById('copy-button');
-        const shareButton = document.getElementById('share-button');
-
+        
         document.getElementById('masayel-content').addEventListener('click', (e) => {
             if (e.target.classList.contains('read-more-btn')) {
                 const masalaId = e.target.dataset.id;
@@ -758,7 +816,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('modal-title').textContent = masala.title;
         document.getElementById('modal-body').textContent = masala.content;
         
-        // Setup buttons for this specific masala
         const copyButton = document.getElementById('copy-button');
         const shareButton = document.getElementById('share-button');
         
