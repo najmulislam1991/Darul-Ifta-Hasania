@@ -24,7 +24,7 @@
         - Daily Verses: Goal: Inspire. Method: JS-rotated text in styled cards. Justification: Prominent spiritual content.
         - Masayel List: Goal: Organize/Inform. Method: Grid of summary cards with a "Read More" modal. Justification: Allows easy scanning and deep dives without clutter.
         - Contact Info: Goal: Inform. Method: List with icons and clickable links. Justification: Standard, actionable format.
-        - Form: Goal: User Input. Method: Standard HTML form. Justification: Universal pattern for data collection.
+        - Form: Goal: User Input. Method: Standard HTML form submitted via AJAX to a third-party service (Formspree) to avoid backend dependency. Justification: Universal pattern for data collection, made functional on a static site.
         All interactions are handled with vanilla JavaScript to keep the application lightweight and self-contained.
     -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
@@ -300,10 +300,13 @@
                             <label for="question" class="block themed-text-secondary font-semibold mb-2">প্রশ্নের বিস্তারিত</label>
                             <textarea id="question" name="question" rows="6" class="w-full px-4 py-2 themed-bg-accent themed-text-primary border themed-border rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]" required></textarea>
                         </div>
-                        <button type="submit" class="w-full text-white font-bold py-3 px-4 rounded-md themed-accent themed-accent-hover transition duration-300">জমা দিন</button>
+                        <button type="submit" class="w-full text-white font-bold py-3 px-4 rounded-md themed-accent themed-accent-hover transition duration-300 flex items-center justify-center">জমা দিন</button>
                     </form>
-                    <div id="form-success-message" class="hidden mt-4 p-4 text-center bg-green-100 text-green-800 rounded-md">
+                    <div id="form-success-message" class="hidden mt-4 p-4 text-center bg-green-100 text-green-700 rounded-md">
                         আপনার প্রশ্ন সফলভাবে জমা দেওয়া হয়েছে। আমরা শীঘ্রই আপনার সাথে যোগাযোগ করব।
+                    </div>
+                     <div id="form-error-message" class="hidden mt-4 p-4 text-center bg-red-100 text-red-700 rounded-md">
+                        কিছু একটা সমস্যা হয়েছে। অনুগ্রহ করে ফর্মটি আবার জমা দিন।
                     </div>
                 </div>
             </section>
@@ -354,7 +357,7 @@
                         </li>
                         <li class="flex items-center">
                            <i class="fas fa-envelope themed-accent-text mr-4"></i>
-                            <a href="mailto:darulifta@hasania.com" class="themed-text-secondary hover:themed-accent-text">darulifta@hasania.com</a>
+                            <a href="mailto:najmulislamn1990@gmail.com" class="themed-text-secondary hover:themed-accent-text">najmulislamn1990@gmail.com</a>
                         </li>
                     </ul>
                  </div>
@@ -670,16 +673,58 @@ document.addEventListener('DOMContentLoaded', () => {
     function setupAskForm() {
         const form = document.getElementById('question-form');
         const successMessage = document.getElementById('form-success-message');
-        
+        const errorMessage = document.getElementById('form-error-message');
+        const submitButton = form.querySelector('button[type="submit"]');
+
         form.addEventListener('submit', (e) => {
             e.preventDefault();
-            // In a real app, you would send this data to a server.
-            // For this demo, we'll just show a success message.
-            successMessage.classList.remove('hidden');
-            form.reset();
-            setTimeout(() => {
-                successMessage.classList.add('hidden');
-            }, 5000);
+            successMessage.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+
+            const originalButtonText = submitButton.innerHTML;
+            submitButton.innerHTML = `জমা হচ্ছে... <i class="fas fa-spinner fa-spin ml-2"></i>`;
+            submitButton.disabled = true;
+
+            const formData = new FormData(form);
+
+            // গুরুত্বপূর্ণ: আপনার najmulislamn1990@gmail.com ইমেইলের জন্য Formspree.io থেকে একটি নতুন এন্ডপয়েন্ট তৈরি করুন।
+            // তারপর সেই নতুন ফর্মের ইউনিক URL টি এখানে পেস্ট করুন।
+            // আমি এখানে একটি নতুন ডেমো এন্ডপয়েন্ট (xqkrpjjq) ব্যবহার করেছি।
+            fetch('https://formspree.io/f/xqkrpjjq', { 
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    successMessage.classList.remove('hidden');
+                    form.reset();
+                } else {
+                    response.json().then(data => {
+                        if (Object.hasOwn(data, 'errors')) {
+                           errorMessage.textContent = data["errors"].map(error => error["message"]).join(", ");
+                        } else {
+                           errorMessage.textContent = 'একটি সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।';
+                        }
+                        errorMessage.classList.remove('hidden');
+                    })
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                errorMessage.textContent = 'একটি নেটওয়ার্ক সমস্যা হয়েছে। আপনার ইন্টারনেট সংযোগ পরীক্ষা করুন।';
+                errorMessage.classList.remove('hidden');
+            })
+            .finally(() => {
+                submitButton.innerHTML = originalButtonText;
+                submitButton.disabled = false;
+                setTimeout(() => {
+                    successMessage.classList.add('hidden');
+                    errorMessage.classList.add('hidden');
+                }, 6000);
+            });
         });
     }
     
@@ -717,7 +762,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const copyButton = document.getElementById('copy-button');
         const shareButton = document.getElementById('share-button');
         
-        copyButton.onclick = () => copyToClipboard(masala.content);
+        copyButton.onclick = () => copyToClipboard(masala.title, masala.content);
         shareButton.onclick = () => shareMasala(masala.title, masala.content);
         
         modal.classList.remove('hidden');
@@ -735,12 +780,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // --- UTILITY FUNCTIONS ---
-    function copyToClipboard(text) {
+    function copyToClipboard(title, text) {
+        const fullText = `প্রশ্ন: ${title}\n\nউত্তর: ${text}`;
         const toast = document.getElementById('copy-success-toast');
         try {
-            // A temporary textarea is created to hold the text, selected, and copied.
             const tempTextArea = document.createElement('textarea');
-            tempTextArea.value = text;
+            tempTextArea.value = fullText;
             document.body.appendChild(tempTextArea);
             tempTextArea.select();
             document.execCommand('copy');
@@ -751,19 +796,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (err) {
             console.error('Failed to copy: ', err);
-            alert('কপি করতে সমস্যা হয়েছে।');
         }
     }
 
     function shareMasala(title, text) {
+        const fullText = `প্রশ্ন: ${title}\n\nউত্তর: ${text}`;
         if (navigator.share) {
             navigator.share({
                 title: title,
-                text: text,
+                text: fullText,
                 url: window.location.href,
             }).catch(console.error);
         } else {
-            alert('আপনার ব্রাউজার এই শেয়ার ফিচারটি সাপোর্ট করে না।');
+             copyToClipboard(title, text);
+             alert("আপনার ব্রাউজার শেয়ার সমর্থন করে না। মাসয়ালাটি ক্লিপবোর্ডে কপি করা হয়েছে।");
         }
     }
 
