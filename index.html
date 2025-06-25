@@ -20,8 +20,8 @@
     <!-- Chosen Palette: Serene Islamic Green -->
     <!-- Application Structure Plan: A single-page application (SPA) model using JavaScript to show/hide content sections (<section>) for a seamless, app-like user experience without page reloads. A fixed header contains global controls (menu, theme, language), and a slide-in drawer provides primary navigation. Content is organized into logical sections corresponding to menu items. Modals are used for detailed views like "Read More". This structure was chosen for its modern feel, speed, and user-friendly flow, perfectly suiting a content-rich site. -->
     <!-- Visualization & Content Choices: 
-        - Prayer Times: Goal: Inform. Method: Styled HTML table populated via an external API (Al-Adhan). A dropdown allows users to select their district, triggering an API call to fetch location-specific times. Forbidden times are now detailed with start/end descriptions based on API data. Justification: Provides accurate, dynamic, and personalized information, significantly improving utility.
-        - Language Switcher: Goal: Personalize. Method: A JavaScript "dictionary" object holds all UI strings for BN, EN, UR. A function updates element text based on user selection, with the choice persisted in localStorage. Justification: A robust, self-contained solution for multi-language support on a static page.
+        - Prayer Times: Goal: Inform. Method: Styled HTML table populated via an external API (Al-Adhan). A dropdown allows users to select their district, triggering an API call to fetch location-specific times. The design has been enhanced with better spacing, typography, and zebra-striping for readability. Forbidden times are now detailed with start/end descriptions based on API data. Justification: Provides accurate, dynamic, and personalized information, significantly improving utility and aesthetics.
+        - Language Switcher: Goal: Personalize. Method: Refactored for performance. A JavaScript "dictionary" object holds all UI strings. The language change function now instantly updates existing DOM elements' text content instead of re-rendering entire sections, providing a seamless and immediate visual update. Justification: This eliminates perceived lag and significantly improves user experience.
         - Form: Goal: User Input. Method: Standard HTML form submitted via AJAX to a third-party service (Formspree). Justification: Universal pattern for data collection, made functional on a static site.
         All interactions are handled with vanilla JavaScript to keep the application lightweight and self-contained.
     -->
@@ -34,7 +34,7 @@
             -webkit-tap-highlight-color: transparent;
         }
         
-        html[lang="ur"] body {
+        html[lang="ur"] body, html[lang="ar"] body {
             font-family: 'Noto Naskh Arabic', serif;
             direction: rtl;
         }
@@ -89,10 +89,10 @@
             transition: transform 0.3s ease-in-out;
         }
         html[lang="bn"] #drawer, html[lang="en"] #drawer { transform: translateX(-100%); }
-        html[lang="ur"] #drawer { transform: translateX(100%); }
+        html[lang="ur"] #drawer, html[lang="ar"] #drawer { transform: translateX(100%); }
 
         html[lang="bn"] #drawer.open, html[lang="en"] #drawer.open { transform: translateX(0); }
-        html[lang="ur"] #drawer.open { transform: translateX(0); }
+        html[lang="ur"] #drawer.open, html[lang="ar"] #drawer.open { transform: translateX(0); }
         
         /* Marquee / Scrolling Text */
         @keyframes marquee-ltr {
@@ -106,7 +106,7 @@
         .marquee-text {
             animation: marquee-ltr 20s linear infinite;
         }
-        html[lang="ur"] .marquee-text {
+        html[lang="ur"] .marquee-text, html[lang="ar"] .marquee-text {
             animation-name: marquee-rtl;
         }
 
@@ -154,8 +154,8 @@
     <!-- Drawer (Sidebar) -->
     <aside id="drawer" class="fixed top-0 z-50 w-72 h-full themed-bg-primary shadow-lg ltr:left-0 rtl:right-0">
         <div class="p-4">
-            <h2 id="drawer-title" class="text-2xl font-bold themed-accent-text">দারুল ইফতা</h2>
-            <p id="drawer-subtitle" class="text-sm themed-text-secondary">হাসানিয়া, নড়াইল</p>
+            <h2 id="drawer-title" class="text-2xl font-bold themed-accent-text" data-lang-key="drawer_title">দারুল ইফতা</h2>
+            <p id="drawer-subtitle" class="text-sm themed-text-secondary" data-lang-key="drawer_subtitle">হাসানিয়া, নড়াইল</p>
         </div>
         <nav id="nav-menu" class="flex flex-col p-2 space-y-2">
             <a href="#home" class="nav-link text-lg font-semibold px-4 py-2 rounded-md transition-all duration-200" data-lang-key="nav_home">হোম</a>
@@ -191,16 +191,17 @@
             <button id="menu-button" class="p-2 rounded-full hover:themed-bg-accent focus:outline-none">
                 <i class="fas fa-bars text-xl themed-text-primary"></i>
             </button>
-            <h1 id="header_title" class="text-xl font-bold themed-accent-text">দারুল ইফতা হাসানিয়া</h1>
+            <h1 id="header_title" class="text-xl font-bold themed-accent-text" data-lang-key="header_title">দারুল ইফতা হাসানিয়া</h1>
             <div class="flex items-center space-x-2">
                  <div class="relative">
                     <button id="lang-button" class="p-2 rounded-full hover:themed-bg-accent">
-                        <i class="fas fa-language text-xl themed-text-primary"></i>
+                        <i class="fas fa-globe text-xl themed-text-primary"></i>
                     </button>
                     <div id="lang-menu" class="absolute ltr:right-0 rtl:left-0 mt-2 w-28 themed-bg-primary rounded-md shadow-lg hidden">
                         <a href="#" class="block px-4 py-2 text-sm themed-text-primary hover:themed-bg-accent" data-lang="bn">বাংলা</a>
                         <a href="#" class="block px-4 py-2 text-sm themed-text-primary hover:themed-bg-accent" data-lang="en">English</a>
                         <a href="#" class="block px-4 py-2 text-sm themed-text-primary hover:themed-bg-accent" data-lang="ur">اردو</a>
+                        <a href="#" class="block px-4 py-2 text-sm themed-text-primary hover:themed-bg-accent" data-lang="ar">العربية</a>
                     </div>
                 </div>
                 <button id="dark-mode-toggle" class="p-2 rounded-full hover:themed-bg-accent">
@@ -211,7 +212,7 @@
 
         <!-- Scrolling Marquee -->
         <div class="themed-accent text-white py-2 overflow-hidden whitespace-nowrap">
-            <p id="marquee_text" class="marquee-text text-center font-semibold">★ জরুরী মাসয়ালা জানার জন্য এখনই আপনার প্রশ্ন করুন ★</p>
+            <p id="marquee_text" class="marquee-text text-center font-semibold" data-lang-key="marquee_text">★ জরুরী মাসয়ালা জানার জন্য এখনই আপনার প্রশ্ন করুন ★</p>
         </div>
 
         <main class="p-4 md:p-6">
@@ -224,8 +225,8 @@
                 
                 <!-- Welcome Message -->
                 <div class="themed-bg-primary p-6 rounded-2xl shadow-md mb-6 text-center">
-                    <h2 id="welcome-title" class="text-2xl md:text-3xl font-bold themed-accent-text mb-2">আসসালামু আলাইকুম ওয়া রাহমাতুল্লাহ</h2>
-                    <p id="welcome-text" class="themed-text-secondary">হাসানিয়া দারুল ইফতার ওয়েবসাইটে আপনাকে স্বাগতম। এখানে আপনি কুরআন ও সুন্নাহর আলোকে আপনার প্রয়োজনীয় মাসায়েল জানতে পারবেন।</p>
+                    <h2 id="welcome-title" class="text-2xl md:text-3xl font-bold themed-accent-text mb-2" data-lang-key="welcome_title">আসসালামু আলাইকুম ওয়া রাহমাতুল্লাহ</h2>
+                    <p id="welcome-text" class="themed-text-secondary" data-lang-key="welcome_text">হাসানিয়া দারুল ইফতার ওয়েবসাইটে আপনাকে স্বাগতম। এখানে আপনি কুরআন ও সুন্নাহর আলোকে আপনার প্রয়োজনীয় মাসায়েল জানতে পারবেন।</p>
                 </div>
 
                 <!-- Daily Verses -->
@@ -247,18 +248,18 @@
                 <!-- Prayer Times -->
                 <div class="themed-bg-primary p-6 rounded-2xl shadow-md mb-6">
                     <div class="flex flex-col sm:flex-row justify-between items-center mb-4">
-                        <h3 class="text-2xl font-bold themed-accent-text mb-2 sm:mb-0" data-lang-key="prayer_times_title">নামাজের সময়সূচী</h3>
+                        <h3 class="text-2xl font-bold themed-accent-text mb-3 sm:mb-0" data-lang-key="prayer_times_title">নামাজের সময়সূচী</h3>
                         <div class="flex items-center">
-                            <label for="location-selector" class="ltr:mr-2 rtl:ml-2 themed-text-secondary" data-lang-key="location_label">লোকেশন:</label>
-                            <select id="location-selector" class="themed-bg-accent themed-text-primary border themed-border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]"></select>
+                            <label for="location-selector" class="ltr:mr-2 rtl:ml-2 themed-text-secondary font-medium" data-lang-key="location_label">লোকেশন:</label>
+                            <select id="location-selector" class="themed-bg-accent themed-text-primary border-2 themed-border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]"></select>
                         </div>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-center">
-                            <thead class="themed-text-secondary border-b themed-border">
+                            <thead class="themed-text-secondary border-b-2 themed-border">
                                 <tr>
-                                    <th class="py-2" data-lang-key="prayer_name">নামাজ</th>
-                                    <th class="py-2" data-lang-key="prayer_time">সময়</th>
+                                    <th class="py-3 px-2 font-bold text-base" data-lang-key="prayer_name">নামাজ</th>
+                                    <th class="py-3 px-2 font-bold text-base" data-lang-key="prayer_time">সময়</th>
                                 </tr>
                             </thead>
                             <tbody id="prayer-times-body">
@@ -266,7 +267,7 @@
                             </tbody>
                         </table>
                     </div>
-                     <div id="forbidden-times" class="mt-4 text-center themed-text-secondary">
+                     <div id="forbidden-times" class="mt-6 border-t themed-border pt-4 text-center themed-text-secondary">
                         <!-- Forbidden times will be injected by JS -->
                     </div>
                 </div>
@@ -334,11 +335,11 @@
             <section id="about" class="page hidden">
                 <div class="max-w-4xl mx-auto themed-bg-primary p-6 md:p-8 rounded-2xl shadow-md">
                     <h2 class="text-3xl font-bold themed-accent-text mb-2 text-center" data-lang-key="about_title">আমাদের সম্পর্কে</h2>
-                     <p id="about_subtitle" class="text-center text-xl font-semibold themed-text-secondary mb-6">দারুল ইফতা হাসানিয়া</p>
+                     <p id="about_subtitle" class="text-center text-xl font-semibold themed-text-secondary mb-6" data-lang-key="about_subtitle">দারুল ইফতা হাসানিয়া</p>
                     <div class="text-center mb-6">
                         <i class="fas fa-mosque text-6xl themed-accent-text"></i>
                     </div>
-                    <p id="about_text" class="themed-text-secondary text-lg leading-relaxed text-center">
+                    <p id="about_text" class="themed-text-secondary text-lg leading-relaxed text-center" data-lang-key="about_text">
                         হাসানিয়া দারুল ইফতা একটি অলাভজনক ইসলামী গবেষণা কেন্দ্র। আমাদের লক্ষ্য হলো কুরআন ও সুন্নাহর আলোকে সঠিক ইসলামী জ্ঞান মানুষের কাছে পৌঁছে দেওয়া। আমরা দৈনন্দিন জীবনের বিভিন্ন বিষয়ে শরঈ সমাধান প্রদান করে থাকি। আমাদের অভিজ্ঞ মুফতিগণ সর্বদা আপনাদের প্রশ্নের উত্তর দেওয়ার জন্য প্রস্তুত।
                     </p>
                     <div class="mt-8 border-t themed-border pt-6 grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
@@ -368,7 +369,7 @@
                     <ul class="space-y-4 text-lg">
                         <li class="flex items-start">
                            <i class="fas fa-map-marker-alt themed-accent-text mt-1 ltr:mr-4 rtl:ml-4"></i>
-                           <span id="contact_address" class="themed-text-secondary">হাসানিয়া দারুল ইফতা, রঘুনাথপুর, শিঙ্গাশোলপুর, কালিয়া, নড়াইল।</span>
+                           <span id="contact_address" class="themed-text-secondary" data-lang-key="contact_address">হাসানিয়া দারুল ইফতা, রঘুনাথপুর, শিঙ্গাশোলপুর, কালিয়া, নড়াইল।</span>
                         </li>
                         <li class="flex items-center">
                             <i class="fas fa-phone-alt themed-accent-text ltr:mr-4 rtl:ml-4"></i>
@@ -385,13 +386,13 @@
 
         <!-- Footer -->
         <footer class="themed-bg-primary mt-8 py-6 px-4 text-center border-t themed-border">
-            <p id="footer_text" class="themed-text-secondary mb-4 font-semibold">পৃথিবীর যেকোন প্রান্ত থেকে আপনার জরুরী মাসয়ালা জানার জন্য এখনই যোগাযোগ করুন।</p>
+            <p id="footer_text" class="themed-text-secondary mb-4 font-semibold" data-lang-key="footer_text">পৃথিবীর যেকোন প্রান্ত থেকে আপনার জরুরী মাসয়ালা জানার জন্য এখনই যোগাযোগ করুন।</p>
             <div class="flex justify-center space-x-6">
                 <a href="#" class="themed-text-secondary hover:themed-accent-text transition duration-300 text-2xl"><i class="fab fa-youtube"></i></a>
                 <a href="#" class="themed-text-secondary hover:themed-accent-text transition duration-300 text-2xl"><i class="fab fa-facebook"></i></a>
                 <a href="#" class="themed-text-secondary hover:themed-accent-text transition duration-300 text-2xl"><i class="fab fa-whatsapp"></i></a>
             </div>
-             <p id="footer_copyright" class="mt-4 text-sm themed-text-secondary">&copy; ২০২৩-২০২৪ দারুল ইফতা হাসানিয়া। সর্বস্বত্ব সংরক্ষিত।</p>
+             <p id="footer_copyright" class="mt-4 text-sm themed-text-secondary" data-lang-key="footer_copyright">&copy; ২০২৩-২০২৪ দারুল ইফতা হাসানিয়া। সর্বস্বত্ব সংরক্ষিত।</p>
         </footer>
 
     </div>
@@ -571,7 +572,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cat_halal: 'جائز و ناجائز',
             header_title: 'دارالافتاء حسنیہ',
             drawer_title: 'دارالافتاء',
-            drawer_subtitle: 'حسنیہ، نড়াইল',
+            drawer_subtitle: 'حسنیہ، نڑাইল',
             marquee_text: '★ فوری مسائل جاننے کے لیے ابھی اپنا سوال پوچھیں ★',
             welcome_title: 'السلام علیکم ورحمتہ اللہ',
             welcome_text: 'دارالافتاء حسنیہ کی ویب سائٹ پر خوش آمدید۔ یہاں آپ قرآن و سنت کی روشنی میں اپنے ضروری مسائل جان سکتے ہیں۔',
@@ -620,6 +621,72 @@ document.addEventListener('DOMContentLoaded', () => {
             forbidden_sunrise: 'طلوع آفتاب',
             forbidden_midday: 'زوال',
             forbidden_sunset: 'غروب آفتاب',
+        },
+        ar: {
+            nav_home: 'الرئيسية',
+            nav_masayel: 'المسائل',
+            nav_ask: 'اسأل سؤالاً',
+            nav_about: 'معلومات عنا',
+            nav_contact: 'اتصل بنا',
+            cat_taharat: 'الطهارة',
+            cat_salat: 'الصلاة',
+            cat_sawm: 'الصوم',
+            cat_zakat: 'الزكاة',
+            cat_hajj: 'الحج',
+            cat_muamalat: 'المعاملات',
+            cat_marriage: 'الزواج والطلاق',
+            cat_halal: 'الحلال والحرام',
+            header_title: 'دار الإفتاء الحسنية',
+            drawer_title: 'دار الإفتاء',
+            drawer_subtitle: 'الحسنية، نارائل',
+            marquee_text: '★ لطرح أسئلتكم العاجلة، اسألوا الآن ★',
+            welcome_title: 'السلام عليكم ورحمة الله',
+            welcome_text: 'مرحبا بكم في موقع دار الإفتاء الحسنية. هنا تجدون حلولاً لمسائلكم في ضوء القرآن والسنة.',
+            quran_verse_title: 'آية من القرآن',
+            hadith_verse_title: 'حديث شريف',
+            prayer_times_title: 'أوقات الصلاة',
+            location_label: 'الموقع:',
+            prayer_name: 'الصلاة',
+            prayer_time: 'الوقت',
+            urgent_masayel: 'مسائل عاجلة',
+            ask_form_title: 'اسأل سؤالاً',
+            form_name: 'الاسم',
+            form_anonymous: 'إخفاء الاسم',
+            form_email: 'البريد الإلكتروني',
+            form_phone: 'رقم الهاتف (اختياري)',
+            form_subject: 'موضوع السؤال',
+            form_details: 'تفاصيل السؤال',
+            form_submit: 'إرسال',
+            form_success: 'تم إرسال سؤالك بنجاح. سنتصل بك قريبا.',
+            form_error: 'حدث خطأ ما. يرجى إرسال النموذج مرة أخرى.',
+            about_title: 'معلومات عنا',
+            about_subtitle: 'دار الإفتاء الحسنية',
+            about_text: 'دار الإفتاء الحسنية هو مركز أبحاث إسلامي غير ربحي. هدفنا هو نشر المعرفة الإسلامية الصحيحة في ضوء القرآن والسنة. نقدم حلولاً شرعية لمختلف جوانب الحياة اليومية. مفتيونا ذوو الخبرة على استعداد دائم للإجابة على أسئلتكم.',
+            about_mission_title: 'مهمتنا',
+            about_mission_text: 'نشر المعرفة الدينية الصحيحة.',
+            about_service_title: 'خدماتنا',
+            about_service_text: 'تقديم المسائل والفتاوى العاجلة.',
+            about_team_title: 'فريقنا',
+            about_team_text: 'مجموعة من العلماء ذوي المعرفة والخبرة.',
+            contact_title: 'اتصل بنا',
+            contact_address: 'دار الإفتاء الحسنية، راغوناثبور، شينغاشولبور، كاليا، نارائل.',
+            footer_text: 'اتصل بنا من أي مكان في العالم لمعرفة مسائلكم العاجلة.',
+            footer_copyright: '© 2023-2024 دار الإفتاء الحسنية. جميع الحقوق محفوظة.',
+            modal_read_more: 'اقرأ المزيد',
+            modal_bookmark: 'إشارة مرجعية',
+            modal_copy: 'نسخ',
+            modal_share: 'مشاركة',
+            toast_copied: 'تم النسخ!',
+            prayer_fajr: 'الفجر',
+            prayer_dhuhr: 'الظهر',
+            prayer_asr: 'العصر',
+            prayer_maghrib: 'المغرب',
+            prayer_isha: 'العشاء',
+            prayer_tahajjud: 'التهجد',
+            forbidden_times_title: 'الأوقات المنهي عن الصلاة فيها',
+            forbidden_sunrise: 'شروق الشمس',
+            forbidden_midday: 'وقت الزوال',
+            forbidden_sunset: 'غروب الشمس',
         }
     };
 
@@ -633,13 +700,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const quranVerses = {
         bn: '"আর তোমরা নামাজ প্রতিষ্ঠা কর, যাকাত প্রদান কর এবং রুকুকারীদের সাথে রুকু কর।" (সূরা আল-বাকারা, আয়াত ৪৩)',
         en: '"And establish prayer and give zakah and bow with those who bow [in worship and obedience]." (Surah Al-Baqarah, Ayah 43)',
-        ur: '"اور نماز قائم کرو اور زکوٰۃ دو اور رکوع کرنے والوں کے ساتھ رکوع کرو۔" (سورۃ البقرۃ، آیت 43)'
+        ur: '"اور نماز قائم کرو اور زکوٰۃ دو اور رکوع کرنے والوں کے ساتھ رکوع کرو۔" (سورۃ البقرۃ، آیت 43)',
+        ar: '"وَأَقِيمُوا الصَّلَاةَ وَآتُوا الزَّكَاةَ وَارْكَعُوا مَعَ الرَّاكِعِينَ" (سورة البقرة، آية 43)'
     };
 
     const hadithVerses = {
         bn: 'রাসূলুল্লাহ (ﷺ) বলেছেন, "জ্ঞান অর্জন করা প্রত্যেক মুসলিমের উপর ফরজ।" (ইবনে মাজাহ)',
         en: 'The Messenger of Allah (ﷺ) said, "Seeking knowledge is an obligation upon every Muslim." (Ibn Majah)',
-        ur: 'رسول اللہ (ﷺ) نے فرمایا، "علم حاصل کرنا ہر مسلمان پر فرض ہے۔" (ابن ماجہ)'
+        ur: 'رسول اللہ (ﷺ) نے فرمایا، "علم حاصل کرنا ہر مسلمان پر فرض ہے۔" (ابن ماجہ)',
+        ar: 'قال رسول الله صلى الله عليه وسلم: "طلب العلم فريضة على كل مسلم". (ابن ماجه)'
     };
     
     const locations = [
@@ -648,16 +717,16 @@ document.addEventListener('DOMContentLoaded', () => {
         "Faridpur", "Feni", "Gaibandha", "Gazipur", "Gopalganj", "Habiganj", "Jamalpur", "Jashore", 
         "Jhalokati", "Jhenaidah", "Joypurhat", "Khagrachhari", "Khulna", "Kishoreganj", "Kurigram", 
         "Kushtia", "Lakshmipur", "Lalmonirhat", "Madaripur", "Magura", "Manikganj", "Meherpur", 
-        "Moulvibazar", "Munshiganj", "Mymensingh", "Naogaon", "Narail", "Narayanganj", "Narsingdi", 
+        "Moulvibazar", "Munshiganj", "Mymensingh", "Naogaon", "Narail", "Narayanjong", "Narsingdi", 
         "Natore", "Netrokona", "Nilphamari", "Noakhali", "Pabna", "Panchagarh", "Patuakhali", 
         "Pirojpur", "Rajbari", "Rajshahi", "Rangamati", "Rangpur", "Satkhira", "Shariatpur", 
         "Sherpur", "Sirajganj", "Sunamganj", "Sylhet", "Tangail", "Thakurgaon"
     ];
 
     const masayelData = [
-        { id: 1, category: 'ত্বহারাত', title: {bn: 'ওযুর ফরজ কয়টি?', en: 'How many Fardh in Wudu?', ur: 'وضو کے فرائض کتنے ہیں؟'}, summary: {bn: 'ওযুর ফরজ চারটি। যথা: (১) মুখমন্ডল ধোয়া...', en: 'There are four Fardh acts in Wudu: (1) Washing the face...', ur: 'وضو کے چار فرائض ہیں: (۱) چہرہ دھونا...'}, content: {bn: 'ওযুর ফরজ চারটি। যথা: (১) মুখমন্ডল ধোয়া। (২) কনুইসহ উভয় হাত ধোয়া। (৩) মাথার এক-চতুর্থাংশ মাসেহ করা। (৪) টাখনুসহ উভয় পা ধোয়া।', en: 'There are four Fardh acts in Wudu: (1) Washing the entire face. (2) Washing both arms up to and including the elbows. (3) Wiping a quarter of the head. (4) Washing both feet up to and including the ankles.', ur: 'وضو کے چار فرائض ہیں: (۱) پورا چہرہ دھونا۔ (۲) دونوں ہاتھ کہنیوں سمیت دھونا۔ (۳) سر کا چوتھائی حصہ مسح کرنا۔ (۴) دونوں پاؤں ٹخنوں سمیت دھونا۔'} },
-        { id: 2, category: 'ত্বহারাত', title: {bn: 'গোসলের ফরজ কয়টি?', en: 'How many Fardh in Ghusl?', ur: 'غسل کے فرائض کتنے ہیں؟'}, summary: {bn: 'গোসলের ফরজ তিনটি। যথা: (১) ভালোভাবে কুলি করা...', en: 'There are three Fardh acts in Ghusl: (1) Rinsing the mouth thoroughly...', ur: 'غسل کے تین فرائض ہیں: (۱) اچھی طرح کلی کرنا...'}, content: {bn: 'গোসলের ফরজ তিনটি। যথা: (১) ভালোভাবে কুলি করা। (২) নাকে পানি দেওয়া। (৩) সর্ব শরীর ধোয়া।', en: 'There are three Fardh acts in Ghusl: (1) Rinsing the mouth thoroughly. (2) Sniffing water into the nose. (3) Washing the entire body.', ur: 'غسل کے تین فرائض ہیں: (۱) اچھی طرح کلی کرنا۔ (۲) ناک میں پانی ڈالنا۔ (۳) پورے جسم کو دھونا۔'} },
-        { id: 3, category: 'সালাত', title: {bn: 'সালাতের আরকান ও আহকাম', en: 'Pillars & Conditions of Salat', ur: 'نماز کے ارکان و احکام'}, summary: {bn: 'সালাতের ভেতরে ও বাইরে কিছু ফরজ কাজ আছে...', en: 'There are some obligatory acts inside and outside of Salat...', ur: 'نماز کے اندر اور باہر کچھ فرض کام ہیں...'}, content: {bn: 'সালাতের বাইরে ৭টি এবং ভেতরে ৬টি ফরজ রয়েছে। এগুলোকে একত্রে সালাতের আরকান ও আহকাম বলা হয়। এর কোনো একটি ছুটে গেলে সালাত আদায় হয় না।', en: 'There are 7 obligatory acts outside of Salat and 6 inside. Together, they are called the pillars and conditions of Salat. If any of these are missed, the prayer is not valid.', ur: 'نماز کے باہر 7 اور اندر 6 فرائض ہیں۔ انہیں مجموعی طور پر نماز کے ارکان و احکام کہا جاتا ہے۔ ان میں سے کسی ایک کے چھوٹ جانے سے نماز ادا نہیں ہوتی۔'} },
+        { id: 1, category: 'ত্বহারাত', title: {bn: 'ওযুর ফরজ কয়টি?', en: 'How many Fardh in Wudu?', ur: 'وضو کے فرائض کتنے ہیں؟', ar: 'ما هي فرائض الوضوء؟'}, summary: {bn: 'ওযুর ফরজ চারটি। যথা: (১) মুখমন্ডল ধোয়া...', en: 'There are four Fardh acts in Wudu: (1) Washing the face...', ur: 'وضو کے چار فرائض ہیں: (۱) چہرہ دھونا...', ar: 'فرائض الوضوء أربعة: (١) غسل الوجه...'}, content: {bn: 'ওযুর ফরজ চারটি। যথা: (১) মুখমন্ডল ধোয়া। (২) কনুইসহ উভয় হাত ধোয়া। (৩) মাথার এক-চতুর্থাংশ মাসেহ করা। (৪) টাখনুসহ উভয় পা ধোয়া।', en: 'There are four Fardh acts in Wudu: (1) Washing the entire face. (2) Washing both arms up to and including the elbows. (3) Wiping a quarter of the head. (4) Washing both feet up to and including the ankles.', ur: 'وضو کے چار فرائض ہیں: (۱) پورا چہرہ دھونا۔ (۲) دونوں ہاتھ کہنیوں سمیت دھونا۔ (۳) سر کا چوتھائی حصہ مسح کرنا۔ (۴) دونوں پاؤں ٹخنوں سمیت دھونا۔', ar: 'فرائض الوضوء أربعة: (١) غسل الوجه كاملاً. (٢) غسل اليدين مع المرفقين. (٣) مسح ربع الرأس. (٤) غسل الرجلين مع الكعبين.'} },
+        { id: 2, category: 'ত্বহারাত', title: {bn: 'গোসলের ফরজ কয়টি?', en: 'How many Fardh in Ghusl?', ur: 'غسل کے فرائض کتنے ہیں؟', ar: 'ما هي فرائض الغسل؟'}, summary: {bn: 'গোসলের ফরজ তিনটি। যথা: (১) ভালোভাবে কুলি করা...', en: 'There are three Fardh acts in Ghusl: (1) Rinsing the mouth thoroughly...', ur: 'غسل کے تین فرائض ہیں: (۱) اچھی طرح کلی کرنا...', ar: 'فرائض الغسل ثلاثة: (١) المضمضة جيداً...'}, content: {bn: 'গোসলের ফরজ তিনটি। যথা: (১) ভালোভাবে কুলি করা। (২) নাকে পানি দেওয়া। (৩) সর্ব শরীর ধোয়া।', en: 'There are three Fardh acts in Ghusl: (1) Rinsing the mouth thoroughly. (2) Sniffing water into the nose. (3) Washing the entire body.', ur: 'غسل کے تین فرائض ہیں: (۱) اچھی طرح کلی کرنا۔ (۲) ناک میں پانی ڈالنا۔ (۳) پورے جسم کو دھونا۔', ar: 'فرائض الغسل ثلاثة: (١) المضمضة جيداً. (٢) الاستنشاق. (٣) غسل سائر الجسد.'} },
+        { id: 3, category: 'সালাত', title: {bn: 'সালাতের আরকান ও আহকাম', en: 'Pillars & Conditions of Salat', ur: 'نماز کے ارکان و احکام', ar: 'أركان وشروط الصلاة'}, summary: {bn: 'সালাতের ভেতরে ও বাইরে কিছু ফরজ কাজ আছে...', en: 'There are some obligatory acts inside and outside of Salat...', ur: 'نماز کے اندر اور باہر کچھ فرض کام ہیں...', ar: 'هناك أعمال واجبة داخل الصلاة وخارجها...'}, content: {bn: 'সালাতের বাইরে ৭টি এবং ভেতরে ৬টি ফরজ রয়েছে। এগুলোকে একত্রে সালাতের আরকান ও আহকাম বলা হয়। এর কোনো একটি ছুটে গেলে সালাত আদায় হয় না।', en: 'There are 7 obligatory acts outside of Salat and 6 inside. Together, they are called the pillars and conditions of Salat. If any of these are missed, the prayer is not valid.', ur: 'نماز کے باہر 7 اور اندر 6 فرائض ہیں۔ انہیں مجموعی طور پر نماز کے ارکان و احکام کہا جاتا ہے۔ ان میں سے کسی ایک کے چھوٹ جانے سے نماز ادا نہیں ہوتی۔', ar: 'هناك 7 شروط خارج الصلاة و 6 أركان داخلها. تسمى مجتمعة أركان وشروط الصلاة. إذا فات أحدها، فالصلاة غير صحيحة.'} },
     ];
     
     // --- DOM SELECTORS ---
@@ -678,30 +747,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- INITIALIZATION ---
     function init() {
-        // Language
-        setupLanguageSwitcher(); // Setup this first
-
-        // Navigation
+        setupLanguageSwitcher(); 
         setupNavigation();
-        
-        // Features
         setupDarkMode();
         setupMasayelMenu();
         setupPrayerTimes();
-
-        // Home Page Content
         initSlider();
-        updateDailyContent();
         renderHomeCategories();
-
-        // Masayel Page
         renderMasayel('all');
-        
-        // Ask Form
         setupAskForm();
-        
-        // Modal
         setupModal();
+        
+        // Initial language application
+        const savedLang = localStorage.getItem('language') || 'bn';
+        changeLanguage(savedLang, true);
     }
 
     // --- NAVIGATION ---
@@ -716,10 +775,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 const category = e.currentTarget.dataset.category;
                 if (category) {
                     renderMasayel(category);
-                    document.getElementById('masayel-page-title').textContent = `${languageData[currentLang].nav_masayel}: ${languageData[currentLang]['cat_'+category.toLowerCase().split(' ')[0]] || category}`;
+                    updateMasayelPageTitle(e.currentTarget.textContent);
                 } else if (targetId === 'masayel') {
                     renderMasayel('all');
-                    document.getElementById('masayel-page-title').textContent = languageData[currentLang].nav_masayel;
+                    updateMasayelPageTitle();
                 }
 
                 showPage(targetId);
@@ -738,11 +797,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function showPage(pageId) {
         pages.forEach(page => {
             page.style.display = page.id === pageId ? 'block' : 'none';
-            if(page.id === pageId) {
-                page.classList.remove('hidden');
-            } else {
-                 page.classList.add('hidden');
-            }
         });
         window.scrollTo(0, 0);
     }
@@ -790,11 +844,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function changeLanguage(lang) {
-        currentLang = lang;
-        document.documentElement.lang = lang;
-        document.documentElement.dir = lang === 'ur' ? 'rtl' : 'ltr';
-
+    function updateAllUIText(lang) {
         document.querySelectorAll('[data-lang-key]').forEach(el => {
             const key = el.dataset.langKey;
             if (languageData[lang][key]) {
@@ -809,14 +859,27 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
         
-        localStorage.setItem('language', lang);
+        document.getElementById('quran-verse').textContent = quranVerses[lang];
+        document.getElementById('hadith-verse').textContent = hadithVerses[lang];
+
+        updateHomeCategoriesText(lang);
+        updateMasayelCardsText(lang);
+        updateMasayelPageTitle();
+        updatePrayerTimesText(lang);
+    }
+    
+    function changeLanguage(lang, isInitial = false) {
+        currentLang = lang;
+        document.documentElement.lang = lang;
+        document.documentElement.dir = (lang === 'ur' || lang === 'ar') ? 'rtl' : 'ltr';
+
+        updateAllUIText(lang);
         
-        // Refresh dynamic content
-        updateDailyContent();
-        renderMasayel('all'); // Re-render masayel with new language
-        document.getElementById('masayel-page-title').textContent = languageData[currentLang].nav_masayel;
-        renderHomeCategories(); // Re-render home categories
-        fetchPrayerTimes(locationSelector.value); // Re-fetch prayer times to update names
+        if (!isInitial) {
+            fetchPrayerTimes(locationSelector.value);
+        }
+        
+        localStorage.setItem('language', lang);
     }
     
     function setupLanguageSwitcher() {
@@ -835,13 +898,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         document.addEventListener('click', (e) => {
-            if (!langMenu.contains(e.target)) {
+            if (!langMenu.contains(e.target) && !langMenu.classList.contains('hidden')) {
                 langMenu.classList.add('hidden');
             }
         });
-
-        const savedLang = localStorage.getItem('language') || 'bn';
-        changeLanguage(savedLang);
     }
 
     // --- PRAYER TIMES LOGIC ---
@@ -865,33 +925,74 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function fetchPrayerTimes(city) {
         const tableBody = document.getElementById('prayer-times-body');
+        const originalHtml = tableBody.innerHTML;
         tableBody.innerHTML = `
             <tr>
                 <td colspan="2" class="py-10 text-center themed-text-secondary">
                     <i class="fas fa-spinner fa-spin text-2xl"></i>
-                    <p class="mt-2">সময় লোড হচ্ছে...</p>
                 </td>
             </tr>
         `;
 
         try {
             const response = await fetch(`https://api.aladhan.com/v1/timingsByCity?country=BD&city=${city}`);
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
+            if (!response.ok) throw new Error('Network error');
             const data = await response.json();
             displayPrayerTimes(data.data.timings);
         } catch (error) {
             console.error('Failed to fetch prayer times:', error);
-            tableBody.innerHTML = `
-                <tr>
-                    <td colspan="2" class="py-10 text-center text-red-500">
-                       নামাজের সময় আনতে ব্যর্থ। <br/> অনুগ্রহ করে আপনার ইন্টারনেট সংযোগ পরীক্ষা করুন।
-                    </td>
-                </tr>
+            tableBody.innerHTML = originalHtml; // Restore previous content on error
+        }
+    }
+
+    function updatePrayerTimesText(lang, times) {
+        const prayerOrderMap = {
+            prayer_fajr: 'Fajr',
+            prayer_dhuhr: 'Dhuhr',
+            prayer_asr: 'Asr',
+            prayer_maghrib: 'Maghrib',
+            prayer_isha: 'Isha'
+        };
+
+        const rows = document.getElementById('prayer-times-body').querySelectorAll('tr');
+        rows.forEach(row => {
+            const key = row.dataset.prayerKey;
+            if (key) {
+                row.querySelector('td:first-child').textContent = languageData[lang][key];
+                if(times && prayerOrderMap[key]) {
+                    row.querySelector('td:last-child').textContent = times[prayerOrderMap[key]];
+                }
+            }
+        });
+
+        const forbiddenTimesDiv = document.getElementById('forbidden-times');
+        if (times) {
+            let sunriseText, middayText, sunsetText;
+             if(currentLang === 'bn') {
+                sunriseText = `সূর্যোদয়ের মুহূর্ত (${times.Sunrise}) থেকে প্রায় ১৫-২০ মিনিট পর্যন্ত।`;
+                middayText = `যোহরের সময় শুরু হওয়ার প্রায় ১৫ মিনিট আগে থেকে সূর্য ঢলে পড়া পর্যন্ত।`;
+                sunsetText = `সূর্যাস্তের (${times.Sunset}) আগের ১৫-২০ মিনিট থেকে শুরু করে সূর্য পুরোপুরি অস্ত যাওয়া পর্যন্ত।`;
+            } else if (currentLang === 'en') {
+                sunriseText = `From the moment of sunrise (${times.Sunrise}) for about 15-20 minutes.`;
+                middayText = `About 15 minutes before Dhuhr time until the sun passes its zenith.`;
+                sunsetText = `About 15-20 minutes before sunset (${times.Sunset}) until the sun has completely set.`;
+            } else {
+                 sunriseText = `من لحظة شروق الشمس (${times.Sunrise}) لمدة 15-20 دقيقة تقريبًا.`;
+                 middayText = `قبل وقت الظهر بحوالي 15 دقيقة حتى تزول الشمس.`;
+                 sunsetText = `قبل غروب الشمس (${times.Sunset}) بحوالي 15-20 دقيقة حتى تغرب الشمس تمامًا.`;
+            }
+
+            forbiddenTimesDiv.innerHTML = `
+                <h4 class="font-bold text-lg mb-2">${languageData[lang].forbidden_times_title}</h4>
+                <div class="text-left max-w-lg mx-auto themed-text-secondary space-y-2">
+                    <p><i class="fas fa-times-circle text-red-500 ltr:mr-2 rtl:ml-2"></i><span class="font-semibold">${languageData[lang].forbidden_sunrise}:</span> ${sunriseText}</p>
+                    <p><i class="fas fa-times-circle text-red-500 ltr:mr-2 rtl:ml-2"></i><span class="font-semibold">${languageData[lang].forbidden_midday}:</span> ${middayText}</p>
+                    <p><i class="fas fa-times-circle text-red-500 ltr:mr-2 rtl:ml-2"></i><span class="font-semibold">${languageData[lang].forbidden_sunset}:</span> ${sunsetText}</p>
+                </div>
             `;
         }
     }
+
 
     function displayPrayerTimes(times) {
         const tableBody = document.getElementById('prayer-times-body');
@@ -903,28 +1004,20 @@ document.addEventListener('DOMContentLoaded', () => {
             { key: 'prayer_asr', time: times.Asr },
             { key: 'prayer_maghrib', time: times.Maghrib },
             { key: 'prayer_isha', time: times.Isha },
-            { key: 'prayer_tahajjud', time: languageData[currentLang].prayer_tahajjud === 'Tahajjud' ? 'Last third of night' : 'রাতের শেষ তৃতীয়াংশ' }
+            { key: 'prayer_tahajjud', time: languageData[currentLang].prayer_tahajjud || 'রাতের শেষ তৃতীয়াংশ' }
         ];
 
         for (const prayer of prayerOrder) {
             const row = document.createElement('tr');
-            row.className = 'border-b themed-border last:border-b-0';
+            row.className = 'border-b themed-border last:border-b-0 even:bg-[var(--bg-accent)] dark:even:bg-gray-800';
+            row.dataset.prayerKey = prayer.key;
             row.innerHTML = `
-                <td class="py-3 font-semibold">${languageData[currentLang][prayer.key]}</td>
-                <td class="py-3">${prayer.time}</td>
+                <td class="py-4 px-2 font-semibold text-lg">${languageData[currentLang][prayer.key]}</td>
+                <td class="py-4 px-2 text-lg">${prayer.time}</td>
             `;
             tableBody.appendChild(row);
         }
-
-        const forbiddenTimesDiv = document.getElementById('forbidden-times');
-        forbiddenTimesDiv.innerHTML = `
-            <h4 class="font-bold text-lg mb-2" data-lang-key="forbidden_times_title">${languageData[currentLang].forbidden_times_title}</h4>
-            <div class="text-left max-w-lg mx-auto themed-text-secondary space-y-2">
-                <p><i class="fas fa-times-circle text-red-500 ltr:mr-2 rtl:ml-2"></i><span class="font-semibold">${languageData[currentLang].forbidden_sunrise}:</span> ${currentLang === 'bn' ? `সূর্যোদয়ের মুহূর্ত (${times.Sunrise}) থেকে প্রায় ১৫-২০ মিনিট পর্যন্ত।` : `From the moment of sunrise (${times.Sunrise}) for about 15-20 minutes.`}</p>
-                <p><i class="fas fa-times-circle text-red-500 ltr:mr-2 rtl:ml-2"></i><span class="font-semibold">${languageData[currentLang].forbidden_midday}:</span> ${currentLang === 'bn' ? `যোহরের সময় শুরু হওয়ার প্রায় ১৫ মিনিট আগে থেকে সূর্য ঢলে পড়া পর্যন্ত।` : `About 15 minutes before Dhuhr time until the sun passes its zenith.`}</p>
-                <p><i class="fas fa-times-circle text-red-500 ltr:mr-2 rtl:ml-2"></i><span class="font-semibold">${languageData[currentLang].forbidden_sunset}:</span> ${currentLang === 'bn' ? `সূর্যাস্তের (${times.Sunset}) আগের ১৫-২০ মিনিট থেকে শুরু করে সূর্য পুরোপুরি অস্ত যাওয়া পর্যন্ত।` : `About 15-20 minutes before sunset (${times.Sunset}) until the sun has completely set.`}</p>
-            </div>
-        `;
+        updatePrayerTimesText(currentLang, times);
     }
 
     // --- HOME PAGE LOGIC ---
@@ -947,12 +1040,15 @@ document.addEventListener('DOMContentLoaded', () => {
             images[currentSlide].classList.add('opacity-100');
         }, 5000);
     }
-
-    function updateDailyContent() {
-        document.getElementById('quran-verse').textContent = quranVerses[currentLang];
-        document.getElementById('hadith-verse').textContent = hadithVerses[currentLang];
-    }
     
+    function updateHomeCategoriesText(lang) {
+        const container = document.getElementById('home-masayel-categories');
+        container.querySelectorAll('a').forEach((catBox, index) => {
+            const key = catBox.dataset.langKey;
+            catBox.textContent = languageData[lang][key] || catBox.textContent;
+        });
+    }
+
     function renderHomeCategories() {
         const container = document.getElementById('home-masayel-categories');
         const categories = [
@@ -969,8 +1065,8 @@ document.addEventListener('DOMContentLoaded', () => {
         categories.forEach(cat => {
             const catBox = document.createElement('a');
             catBox.href = '#masayel';
-            catBox.className = 'nav-link themed-bg-accent p-4 rounded-xl text-center font-semibold themed-text-primary hover:themed-accent hover:text-white transition-all duration-300 flex items-center justify-center min-h-[60px]';
-            catBox.textContent = languageData[currentLang][cat.key] || cat.bn_val;
+            catBox.className = 'nav-link themed-bg-accent p-4 rounded-xl text-center font-semibold text-white hover:bg-[var(--accent-color-hover)] transition-all duration-300 flex items-center justify-center min-h-[60px]';
+            catBox.dataset.langKey = cat.key;
             catBox.dataset.category = cat.bn_val; // Use Bengali for filtering
             container.appendChild(catBox);
         });
@@ -980,10 +1076,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.preventDefault();
                 const category = e.currentTarget.dataset.category;
                 renderMasayel(category);
-                document.getElementById('masayel-page-title').textContent = `${languageData[currentLang].nav_masayel}: ${e.currentTarget.textContent}`;
+                updateMasayelPageTitle(e.currentTarget.textContent);
                 showPage('masayel');
                 updateActiveLink(document.querySelector('#masayel-menu-container a'));
             });
+        });
+        updateHomeCategoriesText(currentLang);
+    }
+    
+    function updateMasayelPageTitle(subtitle) {
+        const titleEl = document.getElementById('masayel-page-title');
+        if (subtitle) {
+            titleEl.textContent = `${languageData[currentLang].nav_masayel}: ${subtitle}`;
+        } else {
+            titleEl.textContent = languageData[currentLang].nav_masayel;
+        }
+    }
+    
+    function updateMasayelCardsText(lang) {
+        const contentDiv = document.getElementById('masayel-content');
+        contentDiv.querySelectorAll('.masala-card').forEach(card => {
+            const masalaId = card.dataset.id;
+            const masala = masayelData.find(m => m.id == masalaId);
+            if (masala) {
+                card.querySelector('h3').textContent = masala.title[lang];
+                card.querySelector('p').textContent = masala.summary[lang];
+                card.querySelector('button').textContent = languageData[lang].modal_read_more;
+            }
         });
     }
 
@@ -1000,7 +1119,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         filteredData.forEach(masala => {
             const card = document.createElement('div');
-            card.className = "themed-bg-primary p-6 rounded-2xl shadow-md flex flex-col";
+            card.className = "themed-bg-primary p-6 rounded-2xl shadow-md flex flex-col masala-card";
+            card.dataset.id = masala.id;
             card.innerHTML = `
                 <h3 class="text-xl font-bold themed-accent-text mb-2">${masala.title[currentLang]}</h3>
                 <p class="themed-text-secondary mb-4 flex-grow">${masala.summary[currentLang]}</p>
