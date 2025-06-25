@@ -20,7 +20,7 @@
     <!-- Chosen Palette: Serene Islamic Green -->
     <!-- Application Structure Plan: A single-page application (SPA) model using JavaScript to show/hide content sections (<section>) for a seamless, app-like user experience without page reloads. A fixed header contains global controls (menu, theme, language), and a slide-in drawer provides primary navigation. Content is organized into logical sections corresponding to menu items. Modals are used for detailed views like "Read More". This structure was chosen for its modern feel, speed, and user-friendly flow, perfectly suiting a content-rich site. -->
     <!-- Visualization & Content Choices: 
-        - Prayer Times: Goal: Inform. Method: Styled HTML table populated via an external API (Al-Adhan). A dropdown allows users to select their district, triggering an API call to fetch location-specific times. The design has been enhanced with better spacing, typography, and zebra-striping for readability. Forbidden times are now detailed with start/end descriptions based on API data. Justification: Provides accurate, dynamic, and personalized information, significantly improving utility and aesthetics.
+        - Prayer Times: Goal: Inform. Method: Styled HTML table populated via an external API (Al-Adhan). A dropdown allows users to select their district, triggering an API call to fetch location-specific times. The design has been enhanced with better spacing, typography, and the removal of zebra-striping for a uniform look. Forbidden times are now detailed with start/end descriptions based on API data. Justification: Provides accurate, dynamic, and personalized information, significantly improving utility and aesthetics.
         - Language Switcher: Goal: Personalize. Method: Refactored for performance. A JavaScript "dictionary" object holds all UI strings. The language change function now instantly updates existing DOM elements' text content instead of re-rendering entire sections, providing a seamless and immediate visual update. Justification: This eliminates perceived lag and significantly improves user experience.
         - Form: Goal: User Input. Method: Standard HTML form submitted via AJAX to a third-party service (Formspree). Justification: Universal pattern for data collection, made functional on a static site.
         All interactions are handled with vanilla JavaScript to keep the application lightweight and self-contained.
@@ -1009,7 +1009,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         for (const prayer of prayerOrder) {
             const row = document.createElement('tr');
-            row.className = 'border-b themed-border last:border-b-0 even:bg-[var(--bg-accent)] dark:even:bg-gray-800';
+            row.className = 'border-b themed-border last:border-b-0';
             row.dataset.prayerKey = prayer.key;
             row.innerHTML = `
                 <td class="py-4 px-2 font-semibold text-lg">${languageData[currentLang][prayer.key]}</td>
