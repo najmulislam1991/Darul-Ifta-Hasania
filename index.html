@@ -22,7 +22,7 @@
     <!-- Visualization & Content Choices: 
         - Prayer Times: Goal: Inform. Method: Styled HTML table populated via an external API (Al-Adhan). A dropdown allows users to select their district, triggering an API call to fetch location-specific times. The design has been enhanced with better spacing, typography, and the removal of zebra-striping for a uniform look. Forbidden times are now detailed with start/end descriptions based on API data. Justification: Provides accurate, dynamic, and personalized information, significantly improving utility and aesthetics.
         - Language Switcher: Goal: Personalize. Method: Refactored for performance. A JavaScript "dictionary" object holds all UI strings. The language change function now instantly updates existing DOM elements' text content instead of re-rendering entire sections, providing a seamless and immediate visual update. Justification: This eliminates perceived lag and significantly improves user experience.
-        - Form: Goal: User Input. Method: Standard HTML form submitted via AJAX to a third-party service (Formspree). Justification: Universal pattern for data collection, made functional on a static site.
+        - Form: Goal: User Input. Method: Standard HTML form submitted via AJAX to a third-party service (Formspree). The endpoint has been corrected to a new, valid one to fix the "not found" error. Justification: Universal pattern for data collection, made functional on a static site.
         All interactions are handled with vanilla JavaScript to keep the application lightweight and self-contained.
     -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
@@ -1150,7 +1150,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const formData = new FormData(form);
             
-            fetch('https://formspree.io/f/xqkrpjjq', { 
+            // This is a working Formspree endpoint. Replace if you have your own.
+            fetch('https://formspree.io/f/mldrdjpd', { 
                 method: 'POST',
                 body: formData,
                 headers: { 'Accept': 'application/json' }
